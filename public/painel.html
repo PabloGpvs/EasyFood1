@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Painel do Restaurante - EasyFood</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <header class="panel-header">
+
+        <div>
+            <span class="panel-tag">EASYFOOD • GESTÃO</span>
+
+            <h1>Painel do Restaurante</h1>
+
+            <p>
+                Acompanhe e gerencie os pedidos recebidos.
+            </p>
+        </div>
+
+        <button
+            class="panel-back"
+            onclick="window.location.href='/'"
+        >
+            ← Início
+        </button>
+
+    </header>
+
+    <main>
+
+        <div class="panel-section-heading">
+            <span>PEDIDOS</span>
+            <h2>Pedidos recebidos</h2>
+            <p>Gerencie o status dos pedidos em andamento.</p>
+        </div>
+
+        <section id="pedidos">
+            Carregando pedidos...
+        </section>
+
+    </main>
+
+</body>
+
+    <script>
+
+        const parametros = new URLSearchParams(window.location.search);
+
+        const restauranteId = parametros.get("id");
+
+        async function carregarPedidos() {
+
+            const token = localStorage.getItem("token");
+
+            if (!token) {
+
+                alert("Você precisa estar logado.");
+
+                window.location.href = "/login.html";
+
+                return;
+            }
+
+            if (!restauranteId) {
+
+                document.getElementById("pedidos").innerHTML =
+                    "<p>Restaurante não informado.</p>";
+
+                return;
+            }
+
+            try {
+
+                const resposta = await fetch(
+                    `/restaurants/${restauranteId}/orders`,
+                    {
+                        headers: {
+                            "Authorization": `Bearer ${token}`
+                        }
+                    }
+                );
+
+                if (!resposta.ok) {
+
+                    throw new Error("Erro ao buscar pedidos.");
+
+                }
+
+                const pedidos = await resposta.json();
+
+                const container = document.getElementById("pedidos");
+
+                container.innerHTML = "";
+
+                if (pedidos.length === 0) {
+
+                    container.innerHTML =
+                        "<p>Nenhum pedido recebido.</p>";
+
+                    return;
+                }
+
+                pedidos.forEach(pedido => {
+
+                    const div = document.createElement("div");
+
+                    div.className = "pedido-card";
+
+                    div.innerHTML = `
+    <div class="panel-order-header">
+
+        <div>
+            <span class="panel-order-tag">PEDIDO</span>
+            <h2>#${pedido.id}</h2>
+        </div>
+
+        <strong class="panel-status ${pedido.status.toLowerCase()}">
+            ${statusTexto}
+        </strong>
+
+    </div>
+
+    <div class="panel-order-products">
+
+        <span class="panel-order-section">PRODUTOS</span>
+
+        ${pedido.items.map(item => `
+            <div class="panel-product">
+
+                <div>
+                    <h3>${item.product.name}</h3>
+                    <span>Quantidade: ${item.quantity}</span>
+                </div>
+
+                <strong>
+                    R$ ${item.price.toFixed(2)}
+                </strong>
+
+            </div>
+        `).join("")}
+
+    </div>
+
+    <div class="panel-order-total">
+        <span>Total do pedido</span>
+
+        <strong>
+            R$ ${pedido.total.toFixed(2)}
+        </strong>
+    </div>
+
+    <div class="panel-status-control">
+
+        <label for="status-${pedido.id}">
+            Alterar status
+        </label>
+
+        <div class="panel-status-actions">
+
+            <select id="status-${pedido.id}">
+
+                <option value="PENDENTE"
+                    ${pedido.status === "PENDENTE" ? "selected" : ""}>
+                    Pendente
+                </option>
+
+                <option value="PREPARANDO"
+                    ${pedido.status === "PREPARANDO" ? "selected" : ""}>
+                    Preparando
+                </option>
+
+                <option value="SAIU_PARA_ENTREGA"
+                    ${pedido.status === "SAIU_PARA_ENTREGA" ? "selected" : ""}>
+                    Saiu para entrega
+                </option>
+
+                <option value="ENTREGUE"
+                    ${pedido.status === "ENTREGUE" ? "selected" : ""}>
+                    Entregue
+                </option>
+
+                <option value="CANCELADO"
+                    ${pedido.status === "CANCELADO" ? "selected" : ""}>
+                    Cancelado
+                </option>
+
+            </select>
+
+            <button onclick="alterarStatus(${pedido.id})">
+                Atualizar status
+                <span>→</span>
+            </button>
+
+        </div>
+
+    </div>
+`;
+
+                    container.appendChild(div);
+
+                });
+
+            } catch (error) {
+
+                console.error(error);
+
+                document.getElementById("pedidos").innerHTML =
+                    "<p>Não foi possível carregar os pedidos.</p>";
+
+            }
+
+        }
+
+        async function alterarStatus(pedidoId) {
+
+            const token = localStorage.getItem("token");
+
+            const select = document.getElementById(
+                `status-${pedidoId}`
+            );
+
+            const novoStatus = select.value;
+
+            try {
+
+                const resposta = await fetch(
+                    `/orders/${pedidoId}/status`,
+                    {
+                        method: "PUT",
+
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${token}`
+                        },
+
+                        body: JSON.stringify({
+                            status: novoStatus
+                        })
+                    }
+                );
+
+                const texto = await resposta.text();
+
+                const resultado = texto
+                ? JSON.parse(texto)
+                : {};
+
+                if (!resposta.ok) {
+
+                    alert(
+                        resultado.error ||
+                        "Erro ao atualizar status."
+                    );
+
+                    return;
+                }
+
+                alert("Status atualizado com sucesso!");
+
+                carregarPedidos();
+
+            } catch (error) {
+
+                console.error(error);
+
+                alert("Erro ao atualizar status.");
+
+            }
+
+        }
+
+        carregarPedidos();
+
+        setInterval(carregarPedidos, 5000);
+
+    </script>
+
+</body>
+
+</html>

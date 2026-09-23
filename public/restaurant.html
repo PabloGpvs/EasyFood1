@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurante - EasyFood</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="restaurant-header">
+
+    <div class="restaurant-header-icon">
+        🍔
+    </div>
+
+    <div class="restaurant-header-info">
+        <span>RESTAURANTE</span>
+
+        <h1 id="nomeRestaurante">
+            Carregando...
+        </h1>
+
+        <p id="categoriaRestaurante"></p>
+    </div>
+
+</div>
+
+<div class="menu-heading">
+    <span>MENU</span>
+    <h2>Cardápio</h2>
+    <p>Escolha seus produtos e monte seu pedido.</p>
+</div>
+
+    <div id="produtos">
+        Carregando produtos...
+    </div>
+    <div class="cart-heading">
+    <span>SEU PEDIDO</span>
+    <h2>Meu pedido</h2>
+    <p>Revise os itens antes de finalizar.</p>
+</div>
+
+<div id="carrinho">
+    Nenhum produto adicionado.
+</div>
+
+<div class="cart-total">
+    <span>Total do pedido</span>
+    <strong id="total">R$ 0,00</strong>
+</div>
+
+<button id="btnFinalizar" onclick="finalizarPedido()">
+    Finalizar pedido
+    <span>→</span>
+</button>
+
+    <script>
+
+        const parametros = new URLSearchParams(window.location.search);
+        const id = parametros.get("id");
+
+        async function carregarRestaurante() {
+            const resposta = await fetch(`/restaurants/${id}`);
+            const restaurante = await resposta.json();
+
+            document.getElementById("nomeRestaurante").textContent =
+                restaurante.name;
+
+            document.getElementById("categoriaRestaurante").textContent =
+                restaurante.category;
+
+            const produtos = document.getElementById("produtos");
+
+            produtos.innerHTML = "";
+
+            restaurante.products.forEach(produto => {
+                const div = document.createElement("div");
+
+                div.innerHTML = `
+    <div class="product-card">
+
+        <div class="product-info">
+            <span class="product-category">PRODUTO</span>
+
+            <h3>${produto.name}</h3>
+
+            <p>${produto.description || "Uma ótima opção para o seu pedido."}</p>
+
+            <strong>R$ ${produto.price.toFixed(2)}</strong>
+        </div>
+
+        <button
+            class="product-add"
+            onclick="adicionarAoCarrinho(${produto.id}, '${produto.name}', ${produto.price})"
+        >
+            + Adicionar
+        </button>
+
+    </div>
+`;
+
+                produtos.appendChild(div);
+            });
+        }
+
+        let carrinho = [];
+
+function adicionarAoCarrinho(id, nome, preco) {
+    const produtoExistente = carrinho.find(produto => produto.id === id);
+
+    if (produtoExistente) {
+        produtoExistente.quantidade++;
+    } else {
+        carrinho.push({
+            id: id,
+            nome: nome,
+            preco: preco,
+            quantidade: 1
+        });
+    }
+
+    atualizarCarrinho();
+}
+
+function alterarQuantidade(id, valor) {
+    const produto = carrinho.find(produto => produto.id === id);
+
+    if (!produto) {
+        return;
+    }
+
+    produto.quantidade += valor;
+
+    if (produto.quantidade <= 0) {
+        carrinho = carrinho.filter(produto => produto.id !== id);
+    }
+
+    atualizarCarrinho();
+}
+function removerDoCarrinho(id) {
+    carrinho = carrinho.filter(produto => produto.id !== id);
+
+    atualizarCarrinho();
+}
+
+function atualizarCarrinho() {
+    
+    const container = document.getElementById("carrinho");
+    const totalElemento = document.getElementById("total");
+
+    container.innerHTML = "";
+
+    let total = 0;
+
+    carrinho.forEach(produto => {
+        const div = document.createElement("div");
+
+        div.innerHTML = `
+    <div class="cart-item">
+
+        <div class="cart-item-info">
+            <span>ITEM</span>
+            <h3>${produto.nome}</h3>
+            <strong>R$ ${produto.preco.toFixed(2)}</strong>
+        </div>
+
+        <div class="cart-item-actions">
+
+            <div class="quantity-control">
+                <button onclick="alterarQuantidade(${produto.id}, -1)">−</button>
+
+                <span>${produto.quantidade}</span>
+
+                <button onclick="alterarQuantidade(${produto.id}, 1)">+</button>
+            </div>
+
+            <button
+                class="cart-remove"
+                onclick="removerDoCarrinho(${produto.id})"
+            >
+                Remover
+            </button>
+
+        </div>
+
+    </div>
+`;
+
+        container.appendChild(div);
+
+        total += produto.preco * produto.quantidade;
+    });
+
+    if (carrinho.length === 0) {
+        container.innerHTML = "Nenhum produto adicionado.";
+    }
+
+    totalElemento.textContent =
+        `Total: R$ ${total.toFixed(2)}`;
+}
+
+async function finalizarPedido() {
+    if (carrinho.length === 0) {
+        alert("Adicione pelo menos um produto ao pedido.");
+        return;
+    }
+
+    const total = carrinho.reduce((soma, produto) => {
+        return soma + produto.preco * produto.quantidade;
+    }, 0);
+
+    const pedido = {
+        total: total,
+        items: carrinho.map(produto => ({
+            productId: produto.id,
+            quantity: produto.quantidade,
+            price: produto.preco
+        }))
+    };
+
+    const resposta = await fetch("/orders", {
+        method: "POST",
+        headers: {
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${localStorage.getItem("token")}`
+    },
+        body: JSON.stringify(pedido)
+    });
+
+    const resultado = await resposta.json();
+
+    if (resposta.ok) {
+        alert(`Pedido #${resultado.id} criado com sucesso!`);
+        carrinho = [];
+        atualizarCarrinho();
+    } else {
+        alert("Erro ao criar pedido.");
+    }
+}
+
+
+        carregarRestaurante();
+    </script>
+
+</body>
+</html>

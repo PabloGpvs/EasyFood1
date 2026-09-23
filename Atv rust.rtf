@@ -1,0 +1,177 @@
+{\rtf1\ansi\ansicpg1252\deff0\nouicompat\deflang1046{\fonttbl{\f0\fnil\fcharset0 Calibri;}{\f1\fnil Calibri;}{\f2\fnil\fcharset0 Arial;}{\f3\fnil\fcharset1 Cambria Math;}{\f4\fnil\fcharset0 Arial Black;}}
+{\*\generator Riched20 10.0.19041}{\*\mmathPr\mmathFont3\mwrapIndent1440 }\viewkind4\uc1 
+\pard\sa200\sl276\slmult1\qc\b\i\f0\fs24\lang22 Exerc\'edcios \f1\endash  Transformando C\f0\'f3digo Padr\'e3o em Iteradores (Rust)\par
+
+\pard\sa200\sl276\slmult1\fs22 Exerc\'edcio 1 \f1\endash  Somando elementos\par
+\b0\i0 C\f0\'f3digo original:\par
+let mut soma = 0;\par
+for x in &v \{\par
+    soma += x;\par
+\}\par
+println!("\{\}", soma);\par
+Transforme usando: Use iter().sum().\par
+\b\i\f2\fs28 R: let soma: i32 = v.iter().sum();\par
+println!("\{\}", soma);\par
+\b0\i0\f0\fs22 ---------------------------------------------------------------------------------------------------------------------------\par
+\b\i Exerc\'edcio 2 \f1\endash  Contar elementos pares\par
+\b0\i0 C\f0\'f3digo original:\par
+let mut cont = 0;\par
+for x in &v \{\par
+    if x % 2 == 0 \{\par
+        cont += 1;\par
+    \}\par
+\}\par
+println!("\{\}", cont);\par
+Transforme usando: Use iter().filter(...).count().\par
+\b\i\f2\fs28 R: let cont = v.iter().filter(|&x| x % 2 == 0).count();\par
+println!("\{\}", cont);\par
+\b0\i0\f0\fs22 ---------------------------------------------------------------------------------------------------------------------------\par
+\b\i Exerc\'edcio 3 \f1\endash  Criar um novo vetor com valores dobrados\par
+\b0\i0 C\f0\'f3digo original:\par
+let mut novo = Vec::new();\par
+for x in &v \{\par
+    novo.push(x * 2);\par
+\}\par
+Transforme usando: Use iter().map(...).collect().\par
+\b\i\f2\fs28 R: let novo: Vec<_> = v.iter().map(|x| x * 2).collect();\par
+\b0\i0\f0\fs22 ---------------------------------------------------------------------------------------------------------------------------\par
+\b\i Exerc\'edcio 4 \f1\endash  Somar apenas os \f0\'edmpares\par
+\b0\i0 C\'f3digo original:\par
+let mut soma = 0;\par
+for x in &v \{\par
+    if x % 2 != 0 \{\par
+        soma += x;\par
+    \}\par
+\}\par
+Transforme usando: Use iter().filter(...).sum().\par
+\b\i\f2\fs28 R: let soma: i32 = v.iter().filter(|&x| x % 2 != 0).sum();\b0\i0\f0\fs22\par
+---------------------------------------------------------------------------------------------------------------------------\par
+\b\i Exerc\'edcio 5 \f1\endash  Verificar se h\f0\'e1 algum n\'famero negativo\par
+\b0\i0 C\'f3digo original:\par
+let mut existe = false;\par
+for x in &v \{\par
+    if *x < 0 \{\par
+        existe = true;\par
+        break;\par
+    \}\par
+\}\par
+Transforme usando: Use iter().any(...).\par
+\b\i\f2\fs28 R: let existe = v.iter().any(|&x| x < 0);\b0\i0\f0\fs22\par
+---------------------------------------------------------------------------------------------------------------------------\par
+\b\i Exerc\'edcio 6 \f1\endash  Verificar se todos s\f0\'e3o positivos\par
+\b0\i0 C\'f3digo original:\par
+let mut todos = true;\par
+for x in &v \{\par
+    if *x < 0 \{\par
+        todos = false;\par
+        break;\par
+    \}\par
+\}\par
+Transforme usando: Use iter().all(...).\par
+\b\i\f2\fs28 R: let todos = v.iter().all(|&x| x >= 0);\b0\i0\f0\fs22\par
+---------------------------------------------------------------------------------------------------------------------------\par
+\b\i Exerc\'edcio 7 \f1\endash  Obter o maior valor\par
+\b0\i0 C\f0\'f3digo original:\par
+let mut maior = v[0];\par
+for x in &v \{\par
+    if *x > maior \{\par
+        maior = *x;\par
+    \}\par
+\}\par
+Transforme usando: Use iter().max().\par
+\b\i\f2\fs28 R: let maior = v.iter().max(); \par
+// Nota: retorna Option<&T>, pois o vetor pode estar vazio.\par
+\b0\i0\f0\fs22 ---------------------------------------------------------------------------------------------------------------------------\par
+\b\i Exerc\'edcio 8 \f1\endash  Calcular produto de todos os valores\par
+\b0\i0 C\f0\'f3digo original:\par
+let mut produto = 1;\par
+for x in &v \{\par
+    produto *= x;\par
+\}\par
+Transforme usando: Use iter().fold(1, |acc, x| acc * x).\par
+\b\i\f2\fs28 R: let produto = v.iter().fold(1, |acc, x| acc * x);\par
+// Ou simplesmente: let produto: i32 = v.iter().product();\par
+\b0\i0\f0\fs22 ---------------------------------------------------------------------------------------------------------------------------\par
+\b\i Exerc\'edcio 9 \f1\endash  Somar elementos com \f0\'edndice par\par
+\b0\i0 C\'f3digo original:\par
+let mut soma = 0;\par
+for (i, x) in v.iter().enumerate() \{\par
+    if i % 2 == 0 \{\par
+        soma += x;\par
+    \}\par
+\}\par
+Transforme usando: Use iter().enumerate().filter(...).map(...).sum().\par
+\b\i\f2\fs28 R: let soma: i32 = v.iter().enumerate()\par
+    .filter(|(i, _)| i % 2 == 0)\par
+    .map(|(_, x)| x)\par
+    .sum();\par
+\b0\i0\f0\fs22 ---------------------------------------------------------------------------------------------------------------------------\par
+\b\i Exerc\'edcio 10 \f1\endash  Somar dois vetores elemento a elemento\par
+\b0\i0 C\f0\'f3digo original:\par
+let mut soma = Vec::new();\par
+for i in 0..v1.len() \{\par
+    soma.push(v1[i] + v2[i]);\par
+\}\par
+Transforme usando: Use v1.iter().zip(v2.iter()).map(|(a,b)| a + b).collect().\par
+\b\i\f2\fs24 R: let soma: Vec<_> = v1.iter().zip(v2.iter()).map(|(a, b)| a + b).collect();\b0\i0\f0\fs22\par
+---------------------------------------------------------------------------------------------------------------------------\par
+\b\i Exerc\'edcio 11 \f1\endash  Converter Vec<String> em Vec<usize> com os comprimentos\par
+\b0\i0 C\f0\'f3digo original:\par
+let mut tamanhos = Vec::new();\par
+for s in &palavras \{\par
+    tamanhos.push(s.len());\par
+\}\par
+Transforme usando: Use iter().map(|s| s.len()).collect().\par
+\b\i\f2\fs24 R: let tamanhos: Vec<usize> = palavras.iter().map(|s| s.len()).collect();\b0\i0\f0\fs22\par
+---------------------------------------------------------------------------------------------------------------------------\par
+\b\i Exerc\'edcio 12 \f1\endash  Concatenar palavras separadas por espa\f0\'e7o\par
+\b0\i0 C\'f3digo original:\par
+let mut frase = String::new();\par
+for palavra in &palavras \{\par
+    frase.push_str(palavra);\par
+    frase.push(' ');\par
+\}\par
+Transforme usando: Use iter().cloned().collect::<Vec<_>>().join(" ") ou iter().fold(String::new(), |acc, s| acc + s + " ").\par
+\b\i\f2\fs28 R: // Forma mais comum e eficiente:\par
+let frase = palavras.join(" ");\par
+\par
+// Usando fold (conforme pedido):\par
+let frase = palavras.iter().fold(String::new(), |acc, s| acc + s + " ").trim_end().to_string();\par
+\b0\i0\f0\fs22 ---------------------------------------------------------------------------------------------------------------------------\par
+\b\i Exerc\'edcio 13 \f1\endash  Calcular m\f0\'e9dia\par
+\b0\i0 C\'f3digo original:\par
+let mut soma = 0.0;\par
+for x in &v \{\par
+    soma += x;\par
+\}\par
+let media = soma / v.len() as f64;\par
+Transforme usando: Use let media = v.iter().sum::<f64>() / v.len() as f64.\par
+\b\i\f2\fs28 R: let media = v.iter().sum::<f64>() / v.len() as f64;\b0\i0\f0\fs22\par
+---------------------------------------------------------------------------------------------------------------------------\par
+\b\i Exerc\'edcio 14 \f1\endash  Encontrar o primeiro n\f0\'famero maior que 10\par
+\b0\i0 C\'f3digo original:\par
+let mut resultado = None;\par
+for x in &v \{\par
+    if *x > 10 \{\par
+        resultado = Some(x);\par
+        break;\par
+    \}\par
+\}\par
+Transforme usando: Use iter().find(|&&x| x > 10).\par
+\b\i\f2\fs28 R: let resultado = v.iter().find(|&&x| x > 10);\b0\i0\f0\fs22\par
+---------------------------------------------------------------------------------------------------------------------------\par
+\b\i Exerc\'edcio 15 \f1\endash  Criar um dicion\f0\'e1rio (HashMap) com \'edndice \f3\u8594?\f0  valor\par
+\b0\i0 C\'f3digo original:\par
+let mut mapa = HashMap::new();\par
+for (i, x) in v.iter().enumerate() \{\par
+    mapa.insert(i, *x);\par
+\}\par
+Transforme usando: Use v.iter().enumerate().collect::<HashMap<_, _>>().\par
+\b\i\f2\fs24\lang22 R: use std::collections::HashMap;\par
+let mapa: HashMap<_, _> = v.iter().enumerate().map(|(i, &x)| (i, x)).collect();\par
+// Ou simplificado:\par
+let mapa: HashMap<usize, i32> = v.iter().cloned().enumerate().map(|(i, x)| (i, x)).collect();\par
+\b0\i0\f0\fs22 ---------------------------------------------------------------------------------------------------------------------------\par
+\b\i\f4 Aluno: Pablo Gabriel Parreira Vieira Silva\line Curso: ECO 3NA\line RA: 153668\fs24\par
+}
+ 

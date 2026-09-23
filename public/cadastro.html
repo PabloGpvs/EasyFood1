@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Criar conta - EasyFood</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <main class="auth-page">
+
+        <div class="auth-card">
+
+            <div class="auth-logo">
+                EasyFood<span>.</span>
+            </div>
+
+            <span class="auth-tag">COMECE AGORA</span>
+
+            <h1>Criar conta</h1>
+
+            <p class="auth-description">
+                Crie sua conta e comece a pedir pelo EasyFood.
+            </p>
+
+            <form id="formCadastro">
+
+                <div class="auth-field">
+                    <label for="name">Nome</label>
+
+                    <input
+                        type="text"
+                        id="name"
+                        placeholder="Digite seu nome"
+                        required
+                    >
+                </div>
+
+                <div class="auth-field">
+                    <label for="email">E-mail</label>
+
+                    <input
+                        type="email"
+                        id="email"
+                        placeholder="Digite seu e-mail"
+                        required
+                    >
+                </div>
+
+                <div class="auth-field">
+                    <label for="password">Senha</label>
+
+                    <input
+                        type="password"
+                        id="password"
+                        placeholder="Crie uma senha"
+                        required
+                    >
+                </div>
+
+                <button type="submit" class="auth-button">
+                    Criar conta
+                    <span>→</span>
+                </button>
+
+            </form>
+
+            <p class="auth-register">
+                Já tem uma conta?
+                <a href="login.html">Entrar</a>
+            </p>
+
+        </div>
+
+    </main>
+
+</body>
+
+    <script>
+
+        document.getElementById("formCadastro").addEventListener("submit", async function(event) {
+
+            event.preventDefault();
+
+            const name = document.getElementById("name").value;
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+
+            const resposta = await fetch("/users", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    name: name,
+                    email: email,
+                    password: password
+                })
+            });
+
+            const resultado = await resposta.json();
+
+            if (resposta.ok) {
+
+                alert("Conta criada com sucesso!");
+
+                window.location.href = "/login.html";
+
+            } else {
+
+                alert(resultado.error || "Erro ao criar conta.");
+
+            }
+
+        });
+
+    </script>
+
+</body

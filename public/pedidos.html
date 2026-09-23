@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Meus pedidos - EasyFood</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <header class="orders-header">
+
+        <div>
+            <span class="orders-tag">EASYFOOD • PEDIDOS</span>
+
+            <h1>Meus pedidos</h1>
+
+            <p>
+                Acompanhe seus pedidos e veja o status de cada compra.
+            </p>
+        </div>
+
+        <button
+            id="btnVoltar"
+            onclick="window.location.href='/'"
+        >
+            ← Restaurantes
+        </button>
+
+    </header>
+
+    <main>
+        <section id="pedidos">
+            Carregando pedidos...
+        </section>
+    </main>
+
+</body>
+
+    <script>
+
+        async function carregarPedidos() {
+
+            const token = localStorage.getItem("token");
+
+            if (!token) {
+
+                alert("Você precisa estar logado para ver seus pedidos.");
+
+                window.location.href = "/login.html";
+
+                return;
+            }
+
+            try {
+
+                const resposta = await fetch("/orders", {
+
+                    headers: {
+                        "Authorization": `Bearer ${token}`
+                    }
+
+                });
+
+                if (resposta.status === 401) {
+
+                    alert("Sua sessão expirou. Faça login novamente.");
+
+                    localStorage.removeItem("token");
+                    localStorage.removeItem("usuario");
+
+                    window.location.href = "/login.html";
+
+                    return;
+                }
+
+                if (!resposta.ok) {
+
+                    throw new Error("Erro ao buscar pedidos.");
+
+                }
+
+                const pedidos = await resposta.json();
+
+                const container = document.getElementById("pedidos");
+
+                container.innerHTML = "";
+
+                if (pedidos.length === 0) {
+
+                    container.innerHTML = `
+                        <p>Você ainda não possui pedidos.</p>
+                    `;
+
+                    return;
+                }
+
+                pedidos.forEach(pedido => {
+
+                    const div = document.createElement("div");
+
+                    div.className = "pedido-card";
+
+                    let statusTexto = pedido.status;
+
+                    if (pedido.status === "PENDENTE") {
+                        statusTexto = "Pendente";
+                    }
+
+                    if (pedido.status === "PREPARANDO") {
+                        statusTexto = "Preparando";
+                    }
+
+                    if (pedido.status === "SAIU_PARA_ENTREGA") {
+                        statusTexto = "Saiu para entrega";
+                    }
+
+                    if (pedido.status === "ENTREGUE") {
+                        statusTexto = "Entregue";
+                    }
+
+                    if (pedido.status === "CANCELADO") {
+                        statusTexto = "Cancelado";
+                    }
+
+                    div.innerHTML = `
+    <div class="order-card-header">
+
+        <div>
+            <span class="order-tag">PEDIDO</span>
+            <h2>#${pedido.id}</h2>
+        </div>
+
+        <strong class="status ${pedido.status.toLowerCase()}">
+            ${statusTexto}
+        </strong>
+
+    </div>
+
+    <div class="order-products">
+
+        <span class="order-section-title">PRODUTOS</span>
+
+        ${pedido.items.map(item => `
+            <div class="order-product">
+
+                <div>
+                    <h3>${item.product.name}</h3>
+                    <span>Quantidade: ${item.quantity}</span>
+                </div>
+
+                <strong>
+                    R$ ${item.price.toFixed(2)}
+                </strong>
+
+            </div>
+        `).join("")}
+
+    </div>
+
+    <div class="order-total">
+        <span>Total do pedido</span>
+
+        <strong>
+            R$ ${pedido.total.toFixed(2)}
+        </strong>
+    </div>
+`;
+                    container.appendChild(div);
+
+                });
+
+            } catch (error) {
+
+                console.error(error);
+
+                document.getElementById("pedidos").innerHTML = `
+                    <p>Não foi possível carregar os pedidos.</p>
+                `;
+
+            }
+
+        }
+
+        carregarPedidos();
+
+        // Atualiza os pedidos automaticamente a cada 5 segundos
+        setInterval(carregarPedidos, 5000);
+
+    </script>
+
+</body>
+
+</html>
