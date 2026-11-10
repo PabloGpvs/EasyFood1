@@ -1,6 +1,7 @@
 const prisma = require("../../database/prisma");
 const imageService = require("../shared/image.service");
 const HttpError = require("../shared/http-error");
+const { isAdmin } = require("../shared/permissions");
 
 async function findRestaurantOrFail(restaurantId) {
     const restaurant = await prisma.restaurant.findUnique({ where: { id: restaurantId } });
@@ -12,9 +13,9 @@ async function findRestaurantOrFail(restaurantId) {
     return restaurant;
 }
 
-// Só o dono do restaurante pode mexer no cardápio dele
-function ensureOwner(restaurant, userId) {
-    if (restaurant.ownerId !== userId) {
+// Só o dono do restaurante (ou o administrador) pode mexer no cardápio
+async function ensureOwner(restaurant, userId) {
+    if (restaurant.ownerId !== userId && !(await isAdmin(userId))) {
         throw new HttpError(403, "Você não tem permissão para alterar o cardápio deste restaurante.");
     }
 }
@@ -57,7 +58,7 @@ async function getDishById(dishId) {
 
 async function createDish(restaurantId, data, userId) {
     const restaurant = await findRestaurantOrFail(restaurantId);
-    ensureOwner(restaurant, userId);
+    await ensureOwner(restaurant, userId);
 
     // O restaurante vem da URL (/restaurants/:restaurantId/dishes) e é ligado
     // pela relação. updatedAt é preenchido pelo Prisma (@updatedAt).
@@ -75,7 +76,7 @@ async function createDish(restaurantId, data, userId) {
 
 async function updateDish(dishId, data, userId) {
     const dish = await findDishOrFail(dishId);
-    ensureOwner(dish.restaurant, userId);
+    await ensureOwner(dish.restaurant, userId);
 
     return prisma.dish.update({
         where: { id: dishId },
@@ -85,7 +86,7 @@ async function updateDish(dishId, data, userId) {
 
 async function deleteDish(dishId, userId) {
     const dish = await findDishOrFail(dishId);
-    ensureOwner(dish.restaurant, userId);
+    await ensureOwner(dish.restaurant, userId);
 
     const orders = await prisma.orderItem.count({ where: { dishId } });
 
@@ -102,7 +103,7 @@ async function deleteDish(dishId, userId) {
  */
 async function updateDishImage(dishId, file, userId) {
     const dish = await findDishOrFail(dishId);
-    ensureOwner(dish.restaurant, userId);
+    await ensureOwner(dish.restaurant, userId);
 
     return imageService.replace({
         buffer: file.buffer,
@@ -117,7 +118,7 @@ async function updateDishImage(dishId, file, userId) {
 
 async function removeDishImage(dishId, userId) {
     const dish = await findDishOrFail(dishId);
-    ensureOwner(dish.restaurant, userId);
+    await ensureOwner(dish.restaurant, userId);
 
     const updated = await prisma.dish.update({
         where: { id: dishId },

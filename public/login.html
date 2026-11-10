@@ -1,138 +1,121 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Login - EasyFood</title>
-
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=VT323&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <title>Entrar - EasyFood</title>
 </head>
 
 <body>
 
-    <main class="auth-page">
+    <main class="auth">
 
-        <div class="auth-card">
+        <section class="auth-art" aria-hidden="true">
+            <div class="synth">
+                <div class="synth-sun"></div>
+                <div class="synth-floor"></div>
+            </div>
+            <a class="auth-brand" href="/">Easy<span>Food</span></a>
+            <h2>Sua fome, em tempo real.</h2>
+        </section>
 
-            <div class="auth-logo">
-                EasyFood<span>.</span>
+        <section class="auth-form-side">
+
+            <div class="auth-box">
+
+                <span class="kicker">acesso</span>
+                <h1>Entrar</h1>
+                <p>Entre na sua conta para pedir e acompanhar seus pedidos.</p>
+
+                <p id="mensagem" class="auth-message" hidden></p>
+
+                <form id="formLogin" class="stack">
+
+                    <label class="field">
+                        <span>E-mail</span>
+                        <input type="email" id="email" placeholder="voce@email.com" autocomplete="email" required>
+                    </label>
+
+                    <label class="field">
+                        <span>Senha</span>
+                        <input type="password" id="password" placeholder="Sua senha" autocomplete="current-password" required>
+                    </label>
+
+                    <a class="auth-forgot" href="esqueci-senha.html">Esqueci minha senha</a>
+
+                    <button type="submit" class="btn btn-neon btn-lg btn-block">Entrar</button>
+
+                </form>
+
+                <p class="auth-alt">Ainda não tem conta? <a href="cadastro.html" id="linkCadastro">Criar conta</a></p>
+
             </div>
 
-            <span class="auth-tag">BEM-VINDO DE VOLTA</span>
-
-            <h1>Entrar no EasyFood</h1>
-
-            <p class="auth-description">
-                Acesse sua conta e continue seu pedido.
-            </p>
-
-            <p id="mensagem" class="auth-message" hidden></p>
-
-            <form id="formLogin">
-
-                <div class="auth-field">
-                    <label for="email">E-mail</label>
-
-                    <input
-                        type="email"
-                        id="email"
-                        placeholder="Digite seu e-mail"
-                        required
-                    >
-                </div>
-
-                <div class="auth-field">
-                    <label for="password">Senha</label>
-
-                    <input
-                        type="password"
-                        id="password"
-                        placeholder="Digite sua senha"
-                        required
-                    >
-                </div>
-
-                <a class="auth-forgot" href="esqueci-senha.html">Esqueci minha senha</a>
-
-                <button type="submit" class="auth-button">
-                    Entrar
-                    <span>→</span>
-                </button>
-
-            </form>
-
-            <p class="auth-register">
-                Ainda não tem conta?
-                <a href="cadastro.html" id="linkCadastro">Criar conta</a>
-            </p>
-
-        </div>
+        </section>
 
     </main>
 
+    <script src="/js/app.js"></script>
 
+    <script>
 
-<script src="/js/app.js"></script>
+        const MENSAGENS = {
+            expirou: "Sua sessão expirou. Entre novamente para continuar.",
+            entrar: "Entre na sua conta para continuar.",
+            senha: "Senha alterada. Entre com a nova senha."
+        };
 
-<script>
+        const params = new URLSearchParams(window.location.search);
+        const destino = App.destinoSeguro(params.get("voltar"));
+        const mensagem = document.getElementById("mensagem");
 
-const MENSAGENS = {
-    expirou: "Sua sessão expirou. Entre novamente para continuar.",
-    entrar: "Entre na sua conta para continuar.",
-    cadastro: "Conta criada! Agora é só entrar.",
-    senha: "Senha alterada! Entre com a nova senha."
-};
+        if (MENSAGENS[params.get("motivo")]) {
+            mensagem.textContent = MENSAGENS[params.get("motivo")];
+            mensagem.hidden = false;
+        }
 
-const params = new URLSearchParams(window.location.search);
-const destino = App.destinoSeguro(params.get("voltar"));
-const mensagem = document.getElementById("mensagem");
+        // Leva o "voltar" junto para o cadastro
+        if (params.get("voltar")) {
+            document.getElementById("linkCadastro").href = `cadastro.html?voltar=${encodeURIComponent(destino)}`;
+        }
 
-if (MENSAGENS[params.get("motivo")]) {
-    mensagem.textContent = MENSAGENS[params.get("motivo")];
-    mensagem.hidden = false;
-}
+        document.getElementById("formLogin").addEventListener("submit", async event => {
 
-if (params.get("email")) {
-    document.getElementById("email").value = params.get("email");
-}
+            event.preventDefault();
 
-document.getElementById("formLogin").addEventListener("submit", async function(event) {
+            const botao = event.target.querySelector("button");
+            botao.disabled = true;
 
-    event.preventDefault();
+            try {
 
-    const botao = event.target.querySelector("button");
-    botao.disabled = true;
+                const resultado = await App.api("/auth/login", {
+                    method: "POST",
+                    body: {
+                        email: document.getElementById("email").value,
+                        password: document.getElementById("password").value
+                    }
+                });
 
-    try {
+                App.salvarSessao(resultado.token, resultado.user);
+                window.location.href = destino;
 
-        const resultado = await App.api("/auth/login", {
-            method: "POST",
-            body: {
-                email: document.getElementById("email").value,
-                password: document.getElementById("password").value
+            } catch (erro) {
+
+                mensagem.textContent = erro.message;
+                mensagem.classList.add("erro");
+                mensagem.hidden = false;
+                botao.disabled = false;
+
             }
+
         });
 
-        App.salvarSessao(resultado.token, resultado.user);
-
-        window.location.href = destino;
-
-    } catch (erro) {
-
-        mensagem.textContent = erro.message;
-        mensagem.classList.add("erro");
-        mensagem.hidden = false;
-
-    } finally {
-
-        botao.disabled = false;
-
-    }
-
-});
-
-</script>
+    </script>
 
 </body>
 

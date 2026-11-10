@@ -25,8 +25,11 @@ router.get("/events", async (req, res) => {
         return res.status(401).json({ error: "Token inválido ou expirado." });
     }
 
+    const dbUser = await prisma.user.findUnique({ where: { id: user.id }, select: { role: true } });
+    const admin = dbUser?.role === "ADMIN";
+
     const owned = await prisma.restaurant.findMany({
-        where: { ownerId: user.id },
+        where: admin ? {} : { ownerId: user.id },
         select: { id: true }
     });
 
@@ -48,7 +51,7 @@ router.get("/events", async (req, res) => {
 
     const onOrder = ({ type, order }) => {
         const isCustomer = order.userId === user.id;
-        const isOwner = restaurantIds.has(order.restaurantId);
+        const isOwner = admin || restaurantIds.has(order.restaurantId);
 
         if (isCustomer || isOwner) {
             send("pedido", { type, order, papel: isOwner ? "restaurante" : "cliente" });

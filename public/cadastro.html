@@ -4,112 +4,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Criar conta - EasyFood</title>
-
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=VT323&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <title>Criar conta - EasyFood</title>
 </head>
 
 <body>
 
-    <main class="auth-page">
+    <main class="auth">
 
-        <div class="auth-card">
+        <section class="auth-art" aria-hidden="true">
+            <div class="synth">
+                <div class="synth-sun"></div>
+                <div class="synth-floor"></div>
+            </div>
+            <a class="auth-brand" href="/">Easy<span>Food</span></a>
+            <h2>Entre no circuito do sabor.</h2>
+        </section>
 
-            <div class="auth-logo">
-                EasyFood<span>.</span>
+        <section class="auth-form-side">
+
+            <div class="auth-box">
+
+                <span class="kicker">nova conta</span>
+                <h1>Criar conta</h1>
+                <p>Leva menos de um minuto.</p>
+
+                <p id="mensagem" class="auth-message" hidden></p>
+
+                <form id="formCadastro" class="stack">
+
+                    <label class="field">
+                        <span>Nome</span>
+                        <input type="text" id="name" placeholder="Como quer ser chamado" minlength="2" maxlength="80" autocomplete="name" required>
+                    </label>
+
+                    <label class="field">
+                        <span>E-mail</span>
+                        <input type="email" id="email" placeholder="voce@email.com" autocomplete="email" required>
+                    </label>
+
+                    <label class="field">
+                        <span>Senha</span>
+                        <input type="password" id="password" placeholder="Mínimo 6 caracteres" minlength="6" autocomplete="new-password" required>
+                    </label>
+
+                    <fieldset>
+                        <legend>Como você vai usar o EasyFood?</legend>
+                        <div class="options">
+                            <label><input type="radio" name="role" value="CLIENTE" checked> 🍔 Quero pedir comida</label>
+                            <label><input type="radio" name="role" value="DONO"> 🏪 Tenho um restaurante</label>
+                        </div>
+                    </fieldset>
+
+                    <button type="submit" class="btn btn-neon btn-lg btn-block">Criar conta</button>
+
+                </form>
+
+                <p class="auth-alt">Já tem conta? <a href="login.html">Entrar</a></p>
+
             </div>
 
-            <span class="auth-tag">COMECE AGORA</span>
-
-            <h1>Criar conta</h1>
-
-            <p class="auth-description">
-                Crie sua conta e comece a pedir pelo EasyFood.
-            </p>
-
-            <p id="mensagem" class="auth-message erro" hidden></p>
-
-            <form id="formCadastro">
-
-                <div class="auth-field">
-                    <label for="name">Nome</label>
-
-                    <input
-                        type="text"
-                        id="name"
-                        placeholder="Digite seu nome"
-                        minlength="2"
-                        maxlength="80"
-                        required
-                    >
-                </div>
-
-                <div class="auth-field">
-                    <label for="email">E-mail</label>
-
-                    <input
-                        type="email"
-                        id="email"
-                        placeholder="Digite seu e-mail"
-                        required
-                    >
-                </div>
-
-                <div class="auth-field">
-                    <label for="password">Senha</label>
-
-                    <input
-                        type="password"
-                        id="password"
-                        placeholder="Crie uma senha (mínimo 6 caracteres)"
-                        minlength="6"
-                        required
-                    >
-                </div>
-
-                <fieldset class="account-type">
-                    <legend>Como você vai usar o EasyFood?</legend>
-
-                    <label>
-                        <input type="radio" name="role" value="CLIENTE" checked>
-                        <span>🍔 Quero pedir comida</span>
-                    </label>
-
-                    <label>
-                        <input type="radio" name="role" value="DONO">
-                        <span>🏪 Tenho um restaurante</span>
-                    </label>
-                </fieldset>
-
-                <button type="submit" class="auth-button">
-                    Criar conta
-                    <span>→</span>
-                </button>
-
-            </form>
-
-            <p class="auth-register">
-                Já tem uma conta?
-                <a href="login.html">Entrar</a>
-            </p>
-
-        </div>
+        </section>
 
     </main>
-
-
 
     <script src="/js/app.js"></script>
 
     <script>
 
         const mensagem = document.getElementById("mensagem");
-        const destino = App.destinoSeguro(
-            new URLSearchParams(window.location.search).get("voltar")
-        );
+        const destino = App.destinoSeguro(new URLSearchParams(window.location.search).get("voltar"));
 
-        document.getElementById("formCadastro").addEventListener("submit", async function(event) {
+        mensagem.classList.add("erro");
+
+        document.getElementById("formCadastro").addEventListener("submit", async event => {
 
             event.preventDefault();
 
@@ -132,7 +103,7 @@
                     }
                 });
 
-                // Conta criada: já entra direto, sem precisar digitar de novo
+                // Conta criada: já entra direto
                 const sessao = await App.api("/auth/login", {
                     method: "POST",
                     body: { email, password }
@@ -140,8 +111,8 @@
 
                 App.salvarSessao(sessao.token, sessao.user);
 
-                // Dono vai direto para a página inicial cadastrar o restaurante
-                window.location.href = sessao.user.role === "DONO" && destino === "/"
+                // Dono vai direto cadastrar o restaurante
+                window.location.href = ["DONO", "ADMIN"].includes(sessao.user.role) && destino === "/"
                     ? "/?cadastrar=1"
                     : destino;
 
@@ -149,9 +120,6 @@
 
                 mensagem.textContent = erro.message;
                 mensagem.hidden = false;
-
-            } finally {
-
                 botao.disabled = false;
 
             }

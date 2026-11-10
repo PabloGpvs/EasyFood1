@@ -2,6 +2,7 @@ const prisma = require("../../database/prisma");
 const HttpError = require("../shared/http-error");
 const { emitOrder } = require("../shared/events");
 const { isOpenNow } = require("../shared/business-hours");
+const { isAdmin } = require("../shared/permissions");
 
 const STATUS = ["PENDENTE", "PREPARANDO", "SAIU_PARA_ENTREGA", "ENTREGUE", "CANCELADO"];
 const FINAL_STATUS = ["ENTREGUE", "CANCELADO"];
@@ -182,6 +183,8 @@ async function findOrderOrFail(id) {
 }
 
 async function userOwnsOrderRestaurant(order, userId) {
+    if (await isAdmin(userId)) return true;
+
     const restaurantIds = order.restaurantId
         ? [order.restaurantId]
         : [...new Set(order.items.map(item => item.dish.restaurantId))];
@@ -211,7 +214,7 @@ async function getOrdersByRestaurant(restaurantId, userId, status) {
         throw new HttpError(404, "Restaurante não encontrado.");
     }
 
-    if (restaurant.ownerId !== userId) {
+    if (restaurant.ownerId !== userId && !(await isAdmin(userId))) {
         throw new HttpError(403, "Você não tem permissão para acessar este restaurante.");
     }
 

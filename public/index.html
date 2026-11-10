@@ -4,883 +4,189 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>EasyFood</title>
-
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=VT323&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-
-    <style>
-        /* =========================
-           HOME - EASYFOOD
-        ========================= */
-
-        .home {
-            min-height: 100vh;
-        }
-
-        /* HEADER */
-
-        .topbar {
-            height: 75px;
-            padding: 0 50px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-
-            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-
-            background: rgba(11, 15, 20, 0.85);
-
-            backdrop-filter: blur(15px);
-
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .logo {
-            font-size: 27px;
-            font-weight: bold;
-            letter-spacing: -1px;
-            color: white;
-        }
-
-        .logo span {
-            color: #00e5cc;
-        }
-
-        .menu {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .menu button {
-            padding: 11px 18px;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            background: #151b23;
-            color: #dce2e8;
-            cursor: pointer;
-            font-weight: bold;
-            transition: 0.25s;
-        }
-
-        .menu button:hover {
-            border-color: #00e5cc;
-            color: #00e5cc;
-            transform: translateY(-1px);
-        }
-
-        #btnCadastrar {
-            background: linear-gradient(135deg, #00e5cc, #00a8ff);
-            color: #061014;
-            border: none;
-        }
-
-        #btnCadastrar:hover {
-            color: #061014;
-            box-shadow: 0 0 25px rgba(0, 229, 204, 0.25);
-        }
-
-        #btnSair {
-            background: transparent;
-            color: #8f9baa;
-        }
-
-        #btnSair:hover {
-            color: #ff7180;
-            border-color: rgba(255, 92, 112, 0.35);
-        }
-
-        /* HERO */
-
-        .hero {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 100px 50px 80px;
-
-            display: grid;
-            grid-template-columns: 1.2fr 0.8fr;
-            align-items: center;
-            gap: 60px;
-        }
-
-        .hero-content {
-            max-width: 700px;
-        }
-
-        .hero-tag {
-            display: inline-block;
-
-            padding: 8px 14px;
-
-            border-radius: 30px;
-
-            background: rgba(0, 229, 204, 0.08);
-            border: 1px solid rgba(0, 229, 204, 0.18);
-
-            color: #00e5cc;
-
-            font-size: 13px;
-            font-weight: bold;
-
-            margin-bottom: 20px;
-        }
-
-        .hero h1 {
-            margin: 0;
-
-            font-size: clamp(42px, 6vw, 70px);
-
-            line-height: 1.02;
-
-            letter-spacing: -3px;
-
-            color: #ffffff;
-        }
-
-        .hero h1 span {
-            background: linear-gradient(90deg, #00e5cc, #00a8ff);
-
-            -webkit-background-clip: text;
-            background-clip: text;
-
-            color: transparent;
-        }
-
-        .hero p {
-            margin: 25px 0 30px;
-
-            max-width: 600px;
-
-            color: #8f9baa;
-
-            font-size: 18px;
-
-            line-height: 1.6;
-        }
-
-        .hero-action {
-            padding: 15px 25px;
-
-            border: none;
-            border-radius: 15px;
-
-            cursor: pointer;
-
-            font-size: 15px;
-            font-weight: bold;
-
-            color: #061014;
-
-            background: linear-gradient(135deg, #00e5cc, #00a8ff);
-
-            box-shadow: 0 0 30px rgba(0, 229, 204, 0.12);
-
-            transition: 0.25s;
-        }
-
-        .hero-action:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 0 35px rgba(0, 229, 204, 0.25);
-        }
-
-        /* HERO VISUAL */
-
-        .hero-visual {
-            position: relative;
-
-            height: 330px;
-
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .tech-circle {
-            width: 270px;
-            height: 270px;
-
-            border-radius: 50%;
-
-            border: 1px solid rgba(0, 229, 204, 0.2);
-
-            background:
-                radial-gradient(
-                    circle,
-                    rgba(0, 229, 204, 0.12),
-                    rgba(0, 168, 255, 0.04),
-                    transparent 70%
-                );
-
-            box-shadow:
-                0 0 60px rgba(0, 229, 204, 0.08),
-                inset 0 0 40px rgba(0, 168, 255, 0.05);
-
-            position: relative;
-        }
-
-        .tech-circle::before,
-        .tech-circle::after {
-            content: "";
-
-            position: absolute;
-
-            border-radius: 50%;
-
-            border: 1px solid rgba(0, 229, 204, 0.12);
-        }
-
-        .tech-circle::before {
-            inset: 25px;
-        }
-
-        .tech-circle::after {
-            inset: 55px;
-        }
-
-        .tech-dot {
-            position: absolute;
-
-            width: 12px;
-            height: 12px;
-
-            background: #00e5cc;
-
-            border-radius: 50%;
-
-            box-shadow: 0 0 20px #00e5cc;
-        }
-
-        .dot-one {
-            top: 25px;
-            right: 60px;
-        }
-
-        .dot-two {
-            bottom: 45px;
-            left: 35px;
-            background: #00a8ff;
-            box-shadow: 0 0 20px #00a8ff;
-        }
-
-        .dot-three {
-            top: 120px;
-            left: 15px;
-        }
-
-        /* RESTAURANTES */
-
-        .restaurants-section {
-            max-width: 1200px;
-            margin: 0 auto;
-
-            padding: 0 50px 80px;
-        }
-
-        .section-header {
-            display: flex;
-
-            align-items: end;
-            justify-content: space-between;
-
-            margin-bottom: 25px;
-        }
-
-        .section-title {
-            margin: 0;
-
-            font-size: 30px;
-
-            color: white;
-        }
-
-        .section-title::before {
-            content: "";
-
-            display: inline-block;
-
-            width: 5px;
-            height: 28px;
-
-            border-radius: 10px;
-
-            background: linear-gradient(#00e5cc, #00a8ff);
-
-            margin-right: 12px;
-
-            vertical-align: -3px;
-        }
-
-        .section-subtitle {
-            margin: 5px 0 0 17px;
-
-            color: #778291;
-
-            font-size: 14px;
-        }
-
-        /* FORM */
-
-        #formulario {
-            margin: 0 auto 40px;
-
-            max-width: 550px;
-
-            background: #151b23;
-
-            border: 1px solid rgba(0, 229, 204, 0.15);
-
-            border-radius: 20px;
-
-            padding: 30px;
-
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
-        }
-
-        /* RESTAURANTS */
-
-        #restaurants {
-            padding: 0;
-
-            display: grid;
-
-            grid-template-columns:
-                repeat(auto-fit, minmax(280px, 1fr));
-
-            gap: 22px;
-        }
-
-        #restaurants > div {
-            position: relative;
-
-            padding: 30px;
-
-            background:
-                linear-gradient(
-                    145deg,
-                    rgba(25, 32, 42, 0.95),
-                    rgba(15, 20, 27, 0.95)
-                );
-
-            border: 1px solid rgba(255, 255, 255, 0.07);
-
-            border-radius: 20px;
-
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
-
-            transition: 0.3s ease;
-
-            overflow: hidden;
-        }
-
-        #restaurants > div::before {
-            content: "";
-
-            position: absolute;
-
-            width: 130px;
-            height: 130px;
-
-            right: -60px;
-            top: -60px;
-
-            border-radius: 50%;
-
-            background: #00e5cc;
-
-            opacity: 0.05;
-
-            filter: blur(10px);
-        }
-
-        #restaurants > div:hover {
-            transform: translateY(-6px);
-
-            border-color: rgba(0, 229, 204, 0.4);
-
-            box-shadow:
-                0 20px 45px rgba(0, 0, 0, 0.4),
-                0 0 25px rgba(0, 229, 204, 0.08);
-        }
-
-        #restaurants h3 {
-            margin: 0 0 12px;
-
-            font-size: 22px;
-
-            color: white;
-
-            cursor: pointer;
-
-            transition: 0.2s;
-        }
-
-        #restaurants h3:hover {
-            color: #00e5cc;
-        }
-
-        #restaurants p {
-            color: #8f9baa;
-
-            margin-bottom: 22px;
-        }
-
-        #restaurants button {
-            padding: 10px 15px;
-
-            border-radius: 11px;
-
-            cursor: pointer;
-
-            font-size: 13px;
-
-            font-weight: bold;
-
-            transition: 0.2s;
-        }
-
-        #restaurants button:first-of-type {
-            background: rgba(0, 168, 255, 0.12);
-
-            color: #4fc3ff;
-
-            border: 1px solid rgba(0, 168, 255, 0.25);
-        }
-
-        #restaurants button:first-of-type:hover {
-            background: rgba(0, 168, 255, 0.22);
-        }
-
-        #restaurants button:last-of-type {
-            background: rgba(255, 92, 112, 0.08);
-
-            color: #ff7180;
-
-            border: 1px solid rgba(255, 92, 112, 0.2);
-
-            margin-left: 8px;
-        }
-
-        #restaurants button:last-of-type:hover {
-            background: rgba(255, 92, 112, 0.16);
-        }
-
-        /* =========================
-           PEDIDOS
-        ========================= */
-
-        .pedido-card {
-            background: #151b23;
-
-            padding: 15px;
-
-            margin-bottom: 14px;
-
-            border-radius: 14px;
-
-            border: 1px solid rgba(255, 255, 255, 0.06);
-
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
-        }
-
-        .pedido-card h2 {
-            margin-top: 0;
-            margin-bottom: 10px;
-
-            font-size: 20px;
-        }
-
-        .pedido-card h3 {
-            margin-bottom: 8px;
-
-            font-size: 16px;
-        }
-
-        .pedido-card p {
-            margin: 6px 0;
-
-            color: #9aa5b3;
-        }
-
-        .status {
-            padding: 6px 12px;
-
-            border-radius: 20px;
-
-            font-size: 13px;
-
-            font-weight: bold;
-        }
-
-        .status.pendente {
-            background: rgba(255, 193, 7, 0.12);
-            color: #ffd35a;
-        }
-
-        .status.preparando {
-            background: rgba(0, 168, 255, 0.12);
-            color: #4fc3ff;
-        }
-
-        .status.saiu_para_entrega {
-            background: rgba(255, 145, 0, 0.12);
-            color: #ffad4d;
-        }
-
-        .status.entregue {
-            background: rgba(0, 229, 150, 0.12);
-            color: #38e6ae;
-        }
-
-        .status.cancelado {
-            background: rgba(255, 92, 112, 0.12);
-            color: #ff7180;
-        }
-
-        /* VOLTAR */
-
-        #btnVoltar {
-            padding: 10px 16px;
-
-            border: 1px solid #303844;
-
-            border-radius: 11px;
-
-            cursor: pointer;
-
-            font-size: 14px;
-
-            font-weight: bold;
-
-            background: #151b23;
-
-            color: #c5ccd5;
-
-            margin-bottom: 20px;
-        }
-
-        #btnVoltar:hover {
-            border-color: #00e5cc;
-
-            color: #00e5cc;
-        }
-
-        /* RESPONSIVO */
-
-        @media (max-width: 800px) {
-
-            .topbar {
-                padding: 0 20px;
-
-                height: auto;
-
-                min-height: 70px;
-
-                flex-wrap: wrap;
-
-                gap: 10px;
-
-                padding-top: 12px;
-
-                padding-bottom: 12px;
-            }
-
-            .menu {
-                flex-wrap: wrap;
-            }
-
-            .hero {
-                grid-template-columns: 1fr;
-
-                padding: 70px 25px;
-
-                text-align: center;
-            }
-
-            .hero-content {
-                margin: auto;
-            }
-
-            .hero p {
-                margin-left: auto;
-                margin-right: auto;
-            }
-
-            .hero-visual {
-                height: 260px;
-            }
-
-            .tech-circle {
-                width: 210px;
-                height: 210px;
-            }
-
-            .restaurants-section {
-                padding: 0 25px 50px;
-            }
-
-            .section-header {
-                display: block;
-            }
-        }
-
-        @media (max-width: 550px) {
-
-            .logo {
-                font-size: 23px;
-            }
-
-            .menu {
-                width: 100%;
-            }
-
-            .menu button {
-                flex: 1;
-                padding: 10px;
-                font-size: 12px;
-            }
-
-            .hero h1 {
-                font-size: 43px;
-            }
-
-            .hero {
-                padding-top: 55px;
-            }
-
-            #restaurants {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+    <title>EasyFood</title>
 </head>
 
-<body>
+<body data-pagina="inicio">
 
-    <div class="home">
+    <main class="app-main">
 
-        <!-- HEADER -->
-
-        <header class="topbar">
-
-            <div class="logo">
-                EasyFood<span>.</span>
+        <header class="page-head">
+            <div>
+                <span class="kicker">sistema online</span>
+                <h1 id="saudacao">Boa noite.</h1>
+                <p class="page-sub">O que vai ser hoje?</p>
             </div>
 
-            <nav class="menu">
-
-                <div class="top-actions">
-
-    <!-- Visível só para quem NÃO está logado -->
-    <button class="btn-secondary" data-sessao="deslogado" onclick="App.irParaLogin()" hidden>
-        Entrar
-    </button>
-
-    <button class="btn-primary" data-sessao="deslogado" onclick="window.location.href='/cadastro.html'" hidden>
-        Criar conta
-    </button>
-
-    <!-- Visível só para quem está logado -->
-    <button id="btnCadastrar" class="btn-primary" hidden>
-        + Cadastrar restaurante
-    </button>
-
-    <button
-        class="btn-secondary"
-        data-sessao="logado"
-        onclick="window.location.href='/pedidos.html'"
-        hidden
-    >
-        Meus pedidos
-    </button>
-
-    <button id="btnPainel" class="btn-secondary" onclick="window.location.href='/painel.html'" hidden>
-        Painel
-    </button>
-
-    <div class="avatar-wrap" id="perfil" hidden>
-        <button id="btnPerfil" class="btn-avatar" title="Foto de perfil" aria-haspopup="true">
-            <img id="avatarImg" alt="Sua foto de perfil" hidden>
-            <span id="avatarInicial"></span>
-        </button>
-
-        <div id="menuPerfil" class="avatar-menu" hidden>
-            <strong id="perfilNome"></strong>
-            <button onclick="window.location.href='/conta.html'">👤 Minha conta</button>
-            <button id="btnTrocarFoto">📷 Trocar foto</button>
-            <button id="btnRemoverFoto">Remover foto</button>
-        </div>
-    </div>
-
-    <button id="btnSair" class="btn-logout" data-sessao="logado" onclick="App.sair()" hidden>
-        Sair
-    </button>
-
-</div>
-
-            </nav>
-
+            <label class="search">
+                <input id="busca" type="search" placeholder="Buscar restaurante ou categoria" aria-label="Buscar restaurante ou categoria" autocomplete="off">
+            </label>
         </header>
 
 
-        <!-- HERO -->
+        <!-- Destaque + painel ao vivo -->
 
-        <section class="hero">
+        <section class="bento">
 
-            <div class="hero-content">
-
-                <span class="hero-tag">
-                    DELIVERY • SABOR • EXPERIÊNCIA  
-                </span>
-
-                <h1>
-                    Sua comida.
-                    <br>
-                    Seu <span>momento.</span>
-                </h1>
-
-                <p>
-                    Encontre restaurantes, explore cardápios
-                    e faça seu pedido de forma simples,
-                    rápida e inteligente.
-                </p>
-
-                <button
-                    class="hero-action"
-                    onclick="document.getElementById('restaurants').scrollIntoView({ behavior: 'smooth' })"
-                >
-                    Explorar restaurantes →
-                </button>
-
-            </div>
-
-
-            <div class="hero-visual">
-
-                <div class="tech-circle">
-
-                    <div class="tech-dot dot-one"></div>
-
-                    <div class="tech-dot dot-two"></div>
-
-                    <div class="tech-dot dot-three"></div>
-
+            <article class="panel hero-card">
+                <div class="synth" aria-hidden="true">
+                    <div class="synth-sun"></div>
+                    <div class="synth-floor"></div>
                 </div>
 
-            </div>
+                <div class="hero-copy">
+                    <h2>Comida em alta velocidade</h2>
+                    <p>Escolha um restaurante, monte o pedido e acompanhe cada etapa da entrega ao vivo.</p>
+                    <a class="btn btn-neon btn-lg" href="#restaurantes">Ver restaurantes</a>
+                </div>
+            </article>
 
-        </section>
-
-
-        <!-- FORMULÁRIO -->
-
-        <div id="formulario">
-    <div class="form-header">
-        <span class="form-icon">＋</span>
-
-        <div>
-            <h2>Novo restaurante</h2>
-            <p>Cadastre seu restaurante no EasyFood</p>
-        </div>
-    </div>
-
-    <div class="form-fields">
-    <input
-        id="nome"
-        type="text"
-        placeholder="Nome do restaurante"
-    >
-
-    <input
-        id="categoria"
-        type="text"
-        placeholder="Categoria"
-    >
-
-    <label class="upload-field" for="fotoRestaurante">
-        <img id="previaRestaurante" class="upload-preview" alt="Prévia da foto do restaurante" hidden>
-        <span class="upload-text">
-            <strong id="textoFotoRestaurante">📷 Escolher foto do restaurante (opcional)</strong>
-            <small>JPEG, PNG ou WebP até 5 MB</small>
-        </span>
-        <input id="fotoRestaurante" type="file" accept="image/jpeg,image/png,image/webp" hidden>
-    </label>
-</div>
-
-    <button id="btnSalvar">
-        Salvar restaurante
-        <span>→</span>
-    </button>
-</div>
-        <!-- RESTAURANTES -->
-
-        <section class="restaurants-section">
-
-            <div class="section-header">
+            <aside class="panel live-card" aria-live="polite">
+                <div class="panel-title">
+                    <h3>Agora na cidade</h3>
+                    <span class="badge badge-live">Ao vivo</span>
+                </div>
 
                 <div>
-
-                    <div class="section-heading">
-    <div>
-        <span class="section-tag">EXPLORE</span>
-        <h2>Encontre seu próximo pedido</h2>
-        <p>Escolha um restaurante e descubra o cardápio.</p>
-    </div>
-</div>
-
-                    <p class="section-subtitle">
-                        Escolha seu próximo sabor.
-                    </p>
-
+                    <div class="live-big" id="liveAbertos">--</div>
+                    <p class="live-label">restaurantes abertos agora</p>
                 </div>
 
-            </div>
-
-            <div class="restaurant-filters">
-
-                <input
-                    id="busca"
-                    type="search"
-                    placeholder="🔎 Buscar por nome ou categoria..."
-                    autocomplete="off"
-                >
-
-                <div id="categorias" class="category-chips"></div>
-
-            </div>
-
-            <div id="restaurants">
-                Carregando restaurantes...
-            </div>
+                <ul class="live-list" id="liveLista"></ul>
+            </aside>
 
         </section>
 
-    </div>
 
+        <!-- Categorias -->
+
+        <div class="section-title">
+            <h2>Categorias</h2>
+            <p>Toque para filtrar</p>
+        </div>
+
+        <div class="cats" id="categorias"></div>
+
+
+        <!-- Restaurantes -->
+
+        <div class="section-title" id="restaurantes">
+            <h2>Restaurantes</h2>
+            <div class="row">
+                <p id="contagem"></p>
+                <button id="btnNovo" class="btn btn-cyan btn-sm" hidden>+ Novo restaurante</button>
+            </div>
+        </div>
+
+        <section id="novoRestaurante" class="panel new-rest" hidden>
+
+            <div class="panel-title">
+                <h2>Novo restaurante</h2>
+                <small>depois você monta o cardápio no painel</small>
+            </div>
+
+            <form id="formNovo" class="form-grid">
+
+                <label class="field">
+                    <span>Nome</span>
+                    <input id="nome" type="text" placeholder="Ex.: Neon Burger" minlength="2" maxlength="80" required>
+                </label>
+
+                <label class="field">
+                    <span>Categoria</span>
+                    <input id="categoria" type="text" placeholder="Ex.: Hambúrguer" minlength="2" maxlength="80" required>
+                </label>
+
+                <label class="upload-field full" for="fotoRestaurante">
+                    <img id="previaRestaurante" class="upload-preview" alt="Prévia da foto do restaurante" hidden>
+                    <span class="upload-text">
+                        <strong id="textoFotoRestaurante">📷 Foto do restaurante (opcional)</strong>
+                        <small>JPEG, PNG ou WebP até 5 MB</small>
+                    </span>
+                    <input id="fotoRestaurante" type="file" accept="image/jpeg,image/png,image/webp" hidden>
+                </label>
+
+                <div class="row full">
+                    <button type="submit" id="btnSalvar" class="btn btn-neon">Cadastrar restaurante</button>
+                    <button type="button" id="btnCancelarNovo" class="btn">Cancelar</button>
+                </div>
+
+            </form>
+
+        </section>
+
+        <div class="rest-grid" id="lista">
+            <p class="empty">Carregando restaurantes...</p>
+        </div>
+
+    </main>
 
     <script src="/js/app.js"></script>
     <script src="/js/ui.js"></script>
     <script src="/js/imagens.js"></script>
+    <script src="/js/shell.js"></script>
 
     <script>
 
-        const { escapar } = App;
+        const { escapar, preco } = App;
 
-        // ---------- Lista, busca e filtro de restaurantes ----------
-
+        let todos = [];
         let categoriaAtual = "";
         let buscaTimer;
 
+
+        // ---------- Saudação ----------
+
+        function saudar() {
+            const hora = new Date().getHours();
+            const periodo = hora < 12 ? "Bom dia" : hora < 18 ? "Boa tarde" : "Boa noite";
+            const nome = App.usuario()?.name?.split(" ")[0];
+
+            document.getElementById("saudacao").textContent =
+                nome ? `${periodo}, ${nome}.` : `${periodo}.`;
+        }
+
+
+        // ---------- Restaurantes ----------
+
+        function cartao(restaurante, indice) {
+
+            const numero = String(indice + 1).padStart(2, "0");
+            const emoji = App.emoji(restaurante.category);
+
+            return `
+<a class="panel rest-card ${restaurante.isOpen ? "" : "fechado"}" href="/restaurant.html?id=${restaurante.id}">
+    <span class="rest-num">#${numero}</span>
+    ${restaurante.isOpen ? "" : `<span class="badge badge-off rest-state">Fechado</span>`}
+
+    <div class="rest-cover thumb">
+        ${restaurante.imageUrl
+            ? `<img src="${escapar(restaurante.imageUrl)}" alt="" loading="lazy" data-emoji="${emoji}">`
+            : `<span class="photo-empty">${emoji}</span>`}
+    </div>
+
+    <div class="rest-body">
+        <h3>${escapar(restaurante.name)}</h3>
+        <p class="rest-meta">${escapar(restaurante.category)} — <span class="rating">${App.notaResumo(restaurante)}</span></p>
+        <p class="rest-meta">${[
+            restaurante.deliveryFee > 0 ? `Entrega ${preco(restaurante.deliveryFee)}` : "Entrega grátis",
+            restaurante.minOrder > 0 ? `mínimo ${preco(restaurante.minOrder)}` : ""
+        ].filter(Boolean).join(", ")}</p>
+    </div>
+
+    <span class="rest-go" aria-hidden="true">→</span>
+</a>`;
+
+        }
+
         async function carregarRestaurantes() {
 
-            const container =
-                document.getElementById("restaurants");
-
-            const busca =
-                document.getElementById("busca").value.trim();
-
+            const lista = document.getElementById("lista");
+            const busca = document.getElementById("busca").value.trim();
             const params = new URLSearchParams();
 
             if (busca) params.set("search", busca);
@@ -888,415 +194,213 @@
 
             try {
 
-                const restaurantes =
-                    await App.api(`/restaurants?${params}`);
+                const restaurantes = await App.api(`/restaurants?${params}`);
 
-                if (restaurantes.length === 0) {
+                document.getElementById("contagem").textContent =
+                    `${restaurantes.length} ${restaurantes.length === 1 ? "encontrado" : "encontrados"}`;
 
-                    container.innerHTML = `
-    <p class="empty-state">
-        Nenhum restaurante encontrado${busca ? ` para "${escapar(busca)}"` : ""}.
-    </p>`;
-
-                    return;
-                }
-
-                container.innerHTML = restaurantes.map(restaurante => `
-    <div>
-    <div class="restaurant-card-content ${restaurante.isOpen ? "" : "fechado"}" onclick="abrirRestaurante(${restaurante.id})">
-
-    <div class="restaurant-icon">
-    ${
-        restaurante.imageUrl
-            ? `<img src="${escapar(restaurante.imageUrl)}" alt="${escapar(restaurante.name)}" loading="lazy">`
-            : "🍔"
-    }
-</div>
-
-    <div class="restaurant-info">
-        <h3>${escapar(restaurante.name)}</h3>
-        <p>${escapar(restaurante.category)} · <span class="rating">${App.notaResumo(restaurante)}</span></p>
-        <p class="restaurant-meta">
-            ${restaurante.isOpen ? "" : `<span class="badge-fechado">Fechado</span>`}
-            ${restaurante.deliveryFee > 0 ? `Entrega ${App.preco(restaurante.deliveryFee)}` : "Entrega grátis"}
-            ${restaurante.minOrder > 0 ? ` · Mínimo ${App.preco(restaurante.minOrder)}` : ""}
-        </p>
-    </div>
-
-    <div class="restaurant-open">
-        <span>Ver cardápio</span>
-        <span class="restaurant-arrow">→</span>
-    </div>
-
-</div>
-    </div>
-`).join("");
+                lista.innerHTML = restaurantes.length
+                    ? restaurantes.map(cartao).join("")
+                    : `<p class="empty"><span class="crt">404: fome não encontrada</span>Nenhum restaurante${busca ? ` para "${escapar(busca)}"` : ""}. Tente outra busca ou categoria.</p>`;
 
             } catch (erro) {
-
-                container.innerHTML =
-                    `<p class="empty-state">${escapar(erro.message)}</p>`;
-
-            }
-        }
-
-        async function carregarCategorias() {
-
-            try {
-
-                const categorias =
-                    await App.api("/restaurants/categories");
-
-                const chips = ["", ...categorias].map(categoria => `
-    <button
-        class="category-chip ${categoria === categoriaAtual ? "ativo" : ""}"
-        data-categoria="${escapar(categoria)}"
-    >
-        ${categoria ? escapar(categoria) : "Todas"}
-    </button>`).join("");
-
-                document.getElementById("categorias").innerHTML = chips;
-
-            } catch {
-                // sem categorias, a busca continua funcionando
+                lista.innerHTML = `<p class="empty">${escapar(erro.message)}</p>`;
             }
 
         }
 
-        document
-            .getElementById("categorias")
-            .addEventListener("click", evento => {
 
-                const chip = evento.target.closest(".category-chip");
+        // ---------- Categorias e painel ao vivo ----------
 
-                if (!chip) return;
+        function mostrarCategorias() {
 
-                categoriaAtual = chip.dataset.categoria;
+            const contagem = {};
 
-                document
-                    .querySelectorAll(".category-chip")
-                    .forEach(c => c.classList.toggle("ativo", c === chip));
-
-                carregarRestaurantes();
-
+            todos.forEach(r => {
+                contagem[r.category] = (contagem[r.category] || 0) + 1;
             });
 
-        // Espera a pessoa parar de digitar antes de buscar
-        document
-            .getElementById("busca")
-            .addEventListener("input", () => {
-                clearTimeout(buscaTimer);
-                buscaTimer = setTimeout(carregarRestaurantes, 300);
-            });
+            const categorias = Object.keys(contagem).sort((a, b) => a.localeCompare(b));
 
-
-        document
-    .getElementById("btnCadastrar")
-    .addEventListener("click", () => {
-
-        const formulario =
-            document.getElementById("formulario");
-
-        if (formulario.style.display === "block") {
-
-            formulario.style.display = "none";
-
-        } else {
-
-            formulario.style.display = "block";
-
-            formulario.scrollIntoView({
-                behavior: "smooth",
-                block: "center"
-            });
+            document.getElementById("categorias").innerHTML = [
+                `<button class="cat ${categoriaAtual ? "" : "ativo"}" data-categoria="">
+                    <span class="cat-emoji">✦</span>
+                    <span><strong>Todas</strong><br><small>${todos.length} lugares</small></span>
+                </button>`,
+                ...categorias.map(c => `
+                <button class="cat ${c === categoriaAtual ? "ativo" : ""}" data-categoria="${escapar(c)}">
+                    <span class="cat-emoji">${App.emoji(c)}</span>
+                    <span><strong>${escapar(c)}</strong><br><small>${contagem[c]} ${contagem[c] === 1 ? "lugar" : "lugares"}</small></span>
+                </button>`)
+            ].join("");
 
         }
-    });
 
+        async function mostrarAoVivo() {
 
-        document
-            .getElementById("btnSalvar")
-            .addEventListener("click", async () => {
+            const abertos = todos.filter(r => r.isOpen).length;
+            const gratis = todos.filter(r => !r.deliveryFee).length;
+            const avaliados = todos.filter(r => r.ratingCount);
+            const melhor = avaliados.sort((a, b) => b.ratingAvg - a.ratingAvg)[0];
 
-                if (!App.exigirLogin()) {
-                    return;
-                }
+            document.getElementById("liveAbertos").textContent = String(abertos).padStart(2, "0");
 
-                const botao =
-                    document.getElementById("btnSalvar");
+            const linhas = [
+                ["Com entrega grátis", gratis],
+                ["Mais bem avaliado", melhor ? `${escapar(melhor.name)} ★ ${melhor.ratingAvg.toLocaleString("pt-BR")}` : "—"]
+            ];
 
-                const foto =
-                    document.getElementById("fotoRestaurante").files[0];
-
-                botao.disabled = true;
-
+            if (App.logado()) {
                 try {
+                    const pedidos = await App.api("/orders", { autenticado: true, seExpirar: "limpar" });
+                    const ultimo = pedidos[0];
 
-                    const restaurante =
-                        await App.api("/restaurants", {
-                            method: "POST",
-                            autenticado: true,
-                            body: {
-                                name: document.getElementById("nome").value,
-                                category: document.getElementById("categoria").value
-                            }
-                        });
-
-                    let mensagem =
-                        "Restaurante cadastrado! Agora monte o cardápio no painel.";
-
-                    // A foto vai depois do cadastro, na rota de upload
-                    if (foto) {
-
-                        try {
-
-                            await Imagens.enviar(
-                                `/restaurants/${restaurante.id}/image`,
-                                foto
-                            );
-
-                        } catch (erro) {
-
-                            mensagem +=
-                                `\n\nA foto não foi enviada: ${erro.message}`;
-
-                        }
-
-                    }
-
-                    UI.avisoNaProximaPagina(mensagem);
-
-                    window.location.href =
-                        `/painel.html?id=${restaurante.id}`;
-
-                } catch (erro) {
-
-                    UI.erro(erro);
-
-                } finally {
-
-                    botao.disabled = false;
-
+                    linhas.push(["Seu último pedido", ultimo
+                        ? `<a href="/pedidos.html">#${ultimo.id} ${App.statusTexto(ultimo.status)}</a>`
+                        : "nenhum ainda"]);
+                } catch {
+                    // sem pedidos visíveis
                 }
+            }
 
-            });
-
-
-        function abrirRestaurante(id) {
-
-            window.location.href =
-                `/restaurant.html?id=${id}`;
+            document.getElementById("liveLista").innerHTML =
+                linhas.map(([rotulo, valor]) => `<li><span>${rotulo}</span><strong>${valor}</strong></li>`).join("");
 
         }
 
+        document.getElementById("categorias").addEventListener("click", evento => {
 
-        // ---------- Foto do restaurante no formulário ----------
+            const botao = evento.target.closest(".cat");
 
-        const inputFotoRestaurante =
-            document.getElementById("fotoRestaurante");
+            if (!botao) return;
 
-        const previaRestaurante =
-            document.getElementById("previaRestaurante");
+            categoriaAtual = botao.dataset.categoria;
+            mostrarCategorias();
+            carregarRestaurantes();
 
-        const textoFotoRestaurante =
-            document.getElementById("textoFotoRestaurante");
+        });
 
-        inputFotoRestaurante.addEventListener("change", () => {
+        document.getElementById("busca").addEventListener("input", () => {
+            clearTimeout(buscaTimer);
+            buscaTimer = setTimeout(carregarRestaurantes, 300);
+        });
 
-            const arquivo = inputFotoRestaurante.files[0];
 
-            if (!arquivo) {
-                return limparFotoRestaurante();
-            }
+        // ---------- Novo restaurante (contas de dono) ----------
+
+        const secaoNovo = document.getElementById("novoRestaurante");
+        const inputFoto = document.getElementById("fotoRestaurante");
+        const previa = document.getElementById("previaRestaurante");
+        const textoFoto = document.getElementById("textoFotoRestaurante");
+
+        function abrirNovo(abrir) {
+            secaoNovo.hidden = !abrir;
+            if (abrir) secaoNovo.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+
+        document.getElementById("btnNovo").addEventListener("click", () => abrirNovo(secaoNovo.hidden));
+        document.getElementById("btnCancelarNovo").addEventListener("click", () => abrirNovo(false));
+
+        inputFoto.addEventListener("change", () => {
+
+            const arquivo = inputFoto.files[0];
+
+            if (!arquivo) return limparFoto();
 
             const erro = Imagens.validar(arquivo);
 
             if (erro) {
                 UI.erro(erro);
-                return limparFotoRestaurante();
+                return limparFoto();
             }
 
-            Imagens.mostrarPrevia(arquivo, previaRestaurante);
-
-            textoFotoRestaurante.textContent =
-                `📷 ${arquivo.name} (clique para trocar)`;
+            Imagens.mostrarPrevia(arquivo, previa);
+            textoFoto.textContent = `📷 ${arquivo.name}`;
 
         });
 
-        function limparFotoRestaurante() {
-
-            inputFotoRestaurante.value = "";
-
-            previaRestaurante.hidden = true;
-
-            previaRestaurante.removeAttribute("src");
-
-            textoFotoRestaurante.textContent =
-                "📷 Escolher foto do restaurante (opcional)";
-
+        function limparFoto() {
+            inputFoto.value = "";
+            previa.hidden = true;
+            previa.removeAttribute("src");
+            textoFoto.textContent = "📷 Foto do restaurante (opcional)";
         }
 
+        document.getElementById("formNovo").addEventListener("submit", async evento => {
 
-        // ---------- Foto de perfil ----------
+            evento.preventDefault();
 
-        const perfil = document.getElementById("perfil");
-        const menuPerfil = document.getElementById("menuPerfil");
-        let usuarioLogado = null;
+            if (!App.exigirLogin()) return;
 
-        function mostrarAvatar(usuario) {
+            const botao = document.getElementById("btnSalvar");
+            const foto = inputFoto.files[0];
 
-            usuarioLogado = usuario;
-
-            const img = document.getElementById("avatarImg");
-            const inicial = document.getElementById("avatarInicial");
-
-            document.getElementById("perfilNome").textContent =
-                usuario.name;
-
-            if (usuario.imageUrl) {
-                img.src = usuario.imageUrl;
-                img.hidden = false;
-                inicial.hidden = true;
-            } else {
-                img.hidden = true;
-                img.removeAttribute("src");
-                inicial.hidden = false;
-                inicial.textContent =
-                    (usuario.name || "?").trim().charAt(0).toUpperCase();
-            }
-
-            document.getElementById("btnRemoverFoto").hidden =
-                !usuario.imageUrl;
-
-            perfil.hidden = false;
-
-        }
-
-        // Mostra os botões certos para quem está ou não logado
-        function mostrarMenu() {
-
-            const logado = App.logado();
-
-            document
-                .querySelectorAll("[data-sessao]")
-                .forEach(el => {
-                    el.hidden = el.dataset.sessao !== (logado ? "logado" : "deslogado");
-                });
-
-        }
-
-        async function carregarPerfil() {
-
-            if (!App.logado()) {
-                return;
-            }
+            botao.disabled = true;
 
             try {
 
-                mostrarAvatar(
-                    await App.api("/auth/me", { autenticado: true, seExpirar: "limpar" })
-                );
-
-                // "Painel" só aparece para quem tem restaurante
-                // Cadastrar restaurante só para contas de dono
-                document.getElementById("btnCadastrar").hidden =
-                    usuarioLogado.role !== "DONO";
-
-                if (usuarioLogado.role === "DONO") {
-
-                    const meus =
-                        await App.api("/my-restaurants", { autenticado: true });
-
-                    document.getElementById("btnPainel").hidden =
-                        meus.length === 0;
-
-                    // Vindo do cadastro ou de "Minha conta": já abre o formulário
-                    if (new URLSearchParams(window.location.search).get("cadastrar")) {
-                        const formulario = document.getElementById("formulario");
-                        formulario.style.display = "block";
-                        formulario.scrollIntoView({ behavior: "smooth", block: "center" });
+                const restaurante = await App.api("/restaurants", {
+                    method: "POST",
+                    autenticado: true,
+                    body: {
+                        name: document.getElementById("nome").value,
+                        category: document.getElementById("categoria").value
                     }
+                });
 
+                let mensagem = "Restaurante cadastrado! Agora monte o cardápio.";
+
+                if (foto) {
+                    try {
+                        await Imagens.enviar(`/restaurants/${restaurante.id}/image`, foto);
+                    } catch (erro) {
+                        mensagem += ` A foto não foi enviada: ${erro.message}`;
+                    }
                 }
 
-            } catch {
-                // token expirado: a sessão foi limpa, mostra o menu de visitante
-                mostrarMenu();
+                UI.avisoNaProximaPagina(mensagem);
+                window.location.href = `/painel.html?id=${restaurante.id}&aba=cardapio`;
+
+            } catch (erro) {
+                UI.erro(erro);
+                botao.disabled = false;
             }
+
+        });
+
+
+        // ---------- Início ----------
+
+        async function iniciar() {
+
+            saudar();
+
+            const usuario = App.usuario();
+
+            if (["DONO", "ADMIN"].includes(usuario?.role)) {
+                document.getElementById("btnNovo").hidden = false;
+
+                if (new URLSearchParams(window.location.search).get("cadastrar")) {
+                    abrirNovo(true);
+                }
+            }
+
+            try {
+                todos = await App.api("/restaurants");
+            } catch {
+                todos = [];
+            }
+
+            mostrarCategorias();
+            mostrarAoVivo();
+            carregarRestaurantes();
 
         }
 
-        document
-            .getElementById("btnPerfil")
-            .addEventListener("click", (evento) => {
-                evento.stopPropagation();
-                menuPerfil.hidden = !menuPerfil.hidden;
-            });
-
-        document.addEventListener("click", (evento) => {
-            if (!perfil.contains(evento.target)) {
-                menuPerfil.hidden = true;
-            }
-        });
-
-        document
-            .getElementById("btnTrocarFoto")
-            .addEventListener("click", async () => {
-
-                menuPerfil.hidden = true;
-
-                const arquivo = await Imagens.escolherArquivo();
-
-                if (!arquivo) {
-                    return;
-                }
-
-                perfil.classList.add("enviando");
-
-                try {
-                    mostrarAvatar(
-                        await Imagens.enviar("/auth/me/image", arquivo)
-                    );
-                } catch (erro) {
-                    UI.erro(erro);
-                } finally {
-                    perfil.classList.remove("enviando");
-                }
-
-            });
-
-        document
-            .getElementById("btnRemoverFoto")
-            .addEventListener("click", async () => {
-
-                menuPerfil.hidden = true;
-
-                if (!(await UI.confirmar("Remover sua foto de perfil?", { confirmar: "Remover", perigo: true }))) {
-                    return;
-                }
-
-                try {
-                    mostrarAvatar(
-                        await Imagens.remover("/auth/me/image")
-                    );
-                } catch (erro) {
-                    UI.erro(erro);
-                }
-
-            });
-
-
-        mostrarMenu();
-
-        carregarCategorias();
-
-        carregarRestaurantes();
-
-        carregarPerfil();
+        iniciar();
 
     </script>
 
 </body>
 
 </html>
-

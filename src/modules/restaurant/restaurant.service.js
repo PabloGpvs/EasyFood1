@@ -1,6 +1,7 @@
 const prisma = require("../../database/prisma");
 const imageService = require("../shared/image.service");
 const HttpError = require("../shared/http-error");
+const { isAdmin, canManageRestaurants } = require("../shared/permissions");
 const { isOpenNow } = require("../shared/business-hours");
 
 /**
@@ -93,9 +94,11 @@ async function getReviews(id) {
 }
 
 // Todos os restaurantes do usuário logado (um dono pode ter vários)
+// O administrador enxerga todos os restaurantes da plataforma
 async function getRestaurantsByOwner(ownerId) {
+    const admin = await isAdmin(ownerId);
     const restaurants = await prisma.restaurant.findMany({
-        where: { ownerId },
+        where: admin ? {} : { ownerId },
         orderBy: { id: "asc" }
     });
 
@@ -104,8 +107,9 @@ async function getRestaurantsByOwner(ownerId) {
 
 // ownerId não é único, por isso findFirst (com findUnique o Prisma dava erro)
 async function getRestaurantByOwner(ownerId) {
+    const admin = await isAdmin(ownerId);
     return prisma.restaurant.findFirst({
-        where: { ownerId },
+        where: admin ? {} : { ownerId },
         orderBy: { id: "asc" }
     });
 }
@@ -113,7 +117,7 @@ async function getRestaurantByOwner(ownerId) {
 async function createRestaurant(data, ownerId) {
     const owner = await prisma.user.findUnique({ where: { id: ownerId } });
 
-    if (!owner || owner.role !== "DONO") {
+    if (!owner || !canManageRestaurants(owner.role)) {
         throw new HttpError(403, "Ative o modo restaurante em \"Minha conta\" para cadastrar restaurantes.");
     }
 
@@ -135,7 +139,7 @@ async function findOwnedRestaurant(id, userId) {
         throw new HttpError(404, "Restaurante não encontrado.");
     }
 
-    if (restaurant.ownerId !== userId) {
+    if (restaurant.ownerId !== userId && !(await isAdmin(userId))) {
         throw new HttpError(403, "Você não tem permissão para alterar este restaurante.");
     }
 

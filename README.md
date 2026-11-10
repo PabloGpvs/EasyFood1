@@ -14,6 +14,9 @@ API REST desenvolvida com Node.js, Express, Prisma e PostgreSQL.
 - Conta do tipo "dono" (escolhida no cadastro ou ativada em "Minha conta").
 - Painel com: dados, foto, taxa, pedido mínimo e horário; cardápio com fotos, edição e "esgotado"; pedidos em tempo real com filtro por status.
 
+**Administrador**
+- Papel `ADMIN`: dono da plataforma. Gerencia qualquer restaurante, cardápio e pedido (o painel lista todos os restaurantes). Não pode ser criado pelo cadastro público, só pelo seed.
+
 ## Arquitetura
 
 A aplicação é organizada em módulos. Cada módulo tem rotas, controller e service:
@@ -97,6 +100,8 @@ Para inserir os restaurantes de exemplo:
 ```bash
 npm run seed
 ```
+
+Contas criadas pelo seed: donos `pizza@easyfood.com`, `burger@easyfood.com`, `sushi@easyfood.com` (senha `123456`) e o administrador `pablo@easyfood.com` (senha `1909`).
 
 ## Executar
 

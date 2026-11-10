@@ -1,54 +1,55 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Esqueci minha senha - EasyFood</title>
-
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=VT323&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <title>Esqueci minha senha - EasyFood</title>
 </head>
 
 <body>
 
-    <main class="auth-page">
+    <main class="auth">
 
-        <div class="auth-card">
+        <section class="auth-art" aria-hidden="true">
+            <div class="synth">
+                <div class="synth-sun"></div>
+                <div class="synth-floor"></div>
+            </div>
+            <a class="auth-brand" href="/">Easy<span>Food</span></a>
+            <h2>Acesso perdido? A gente reconecta.</h2>
+        </section>
 
-            <div class="auth-logo">
-                EasyFood<span>.</span>
+        <section class="auth-form-side">
+
+            <div class="auth-box">
+
+                <span class="kicker">recuperar acesso</span>
+                <h1>Esqueci minha senha</h1>
+                <p>Informe o e-mail da conta. Enviamos um link para você criar uma nova senha.</p>
+
+                <p id="mensagem" class="auth-message" hidden></p>
+
+                <form id="formEsqueci" class="stack">
+
+                    <label class="field">
+                        <span>E-mail</span>
+                        <input type="email" id="email" placeholder="voce@email.com" autocomplete="email" required>
+                    </label>
+
+                    <button type="submit" class="btn btn-neon btn-lg btn-block">Enviar link</button>
+
+                </form>
+
+                <p class="auth-alt">Lembrou a senha? <a href="login.html">Entrar</a></p>
+
             </div>
 
-            <span class="auth-tag">RECUPERAR ACESSO</span>
-
-            <h1>Esqueci minha senha</h1>
-
-            <p class="auth-description">
-                Informe o e-mail da sua conta. Vamos enviar um link para você criar uma nova senha.
-            </p>
-
-            <p id="mensagem" class="auth-message" hidden></p>
-
-            <form id="formEsqueci">
-
-                <div class="auth-field">
-                    <label for="email">E-mail</label>
-                    <input type="email" id="email" placeholder="Digite seu e-mail" required>
-                </div>
-
-                <button type="submit" class="auth-button">
-                    Enviar link
-                    <span>→</span>
-                </button>
-
-            </form>
-
-            <p class="auth-register">
-                Lembrou a senha?
-                <a href="login.html">Entrar</a>
-            </p>
-
-        </div>
+        </section>
 
     </main>
 

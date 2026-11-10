@@ -5,6 +5,7 @@ const prisma = require("../../database/prisma");
 const imageService = require("../shared/image.service");
 const HttpError = require("../shared/http-error");
 const emailService = require("../shared/email.service");
+const { ADMIN, canManageRestaurants } = require("../shared/permissions");
 
 const JWT_SECRET = process.env.JWT_SECRET || "easyfood_segredo";
 
@@ -214,6 +215,13 @@ async function changePassword(userId, { currentPassword, newPassword }) {
 
 // Cliente passa a poder cadastrar restaurantes
 async function becomeOwner(userId) {
+    const user = await findUserOrFail(userId);
+
+    // O administrador já pode tudo; não rebaixa o papel dele
+    if (user.role === ADMIN) {
+        return getUserById(userId);
+    }
+
     return prisma.user.update({
         where: { id: userId },
         data: { role: "DONO" },
@@ -224,7 +232,7 @@ async function becomeOwner(userId) {
 async function ensureOwnerRole(userId) {
     const user = await findUserOrFail(userId);
 
-    if (user.role !== "DONO") {
+    if (!canManageRestaurants(user.role)) {
         throw new HttpError(403, "Ative o modo restaurante em \"Minha conta\" para cadastrar restaurantes.");
     }
 }

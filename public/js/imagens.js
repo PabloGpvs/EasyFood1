@@ -12,9 +12,10 @@ document.addEventListener("error", evento => {
         return;
     }
 
+    // Mantém as classes da imagem, para o espaço reservado ocupar o mesmo lugar
     const reserva = document.createElement("span");
-    reserva.className = "photo-empty";
-    reserva.textContent = "🍽️";
+    reserva.className = `${img.className} photo-empty`.trim();
+    reserva.textContent = img.dataset.emoji || "🍽️";
     img.replaceWith(reserva);
 }, true);
 

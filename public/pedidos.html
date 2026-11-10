@@ -4,123 +4,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Meus pedidos - EasyFood</title>
-
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=VT323&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <title>Meus pedidos - EasyFood</title>
 </head>
 
-<body>
+<body data-pagina="pedidos">
 
-    <header class="orders-header">
+    <main class="app-main">
 
-        <div>
-            <span class="orders-tag">EASYFOOD • PEDIDOS</span>
+        <header class="page-head">
+            <div>
+                <span class="kicker">rastreamento ao vivo</span>
+                <h1>Meus pedidos</h1>
+                <p class="page-sub">O status muda aqui na hora em que o restaurante atualiza.</p>
+            </div>
 
-            <h1>Meus pedidos</h1>
+            <div class="chips" id="filtros">
+                <button class="chip ativo" data-filtro="andamento">Em andamento</button>
+                <button class="chip" data-filtro="todos">Todos</button>
+            </div>
+        </header>
 
-            <p>
-                Acompanhe seus pedidos. O status atualiza sozinho.
-            </p>
-        </div>
-
-        <button
-            id="btnVoltar"
-            onclick="window.location.href='/'"
-        >
-            ← Restaurantes
-        </button>
-
-    </header>
-
-    <main>
-        <p id="avisoNovo" class="order-success" hidden></p>
-
-        <section id="pedidos">
-            Carregando pedidos...
+        <section id="pedidos" class="orders">
+            <p class="empty">Carregando pedidos...</p>
         </section>
+
     </main>
 
     <script src="/js/app.js"></script>
     <script src="/js/ui.js"></script>
+    <script src="/js/shell.js"></script>
 
     <script>
 
         const { escapar, preco } = App;
 
-        const novoPedido = Number(
-            new URLSearchParams(window.location.search).get("novo")
-        );
+        const ETAPAS = ["PENDENTE", "PREPARANDO", "SAIU_PARA_ENTREGA", "ENTREGUE"];
+        const FINALIZADOS = ["ENTREGUE", "CANCELADO"];
 
+        const novoPedido = Number(new URLSearchParams(window.location.search).get("novo"));
+
+        let pedidos = [];
+        let filtro = "andamento";
         let ultimoConteudo = "";
 
-        if (novoPedido) {
-            const aviso = document.getElementById("avisoNovo");
-            aviso.textContent = `✅ Pedido #${novoPedido} enviado! Acompanhe o andamento abaixo.`;
-            aviso.hidden = false;
-        }
 
-        function cartaoPedido(pedido) {
+        // Linha do tempo: Pendente → Preparando → Saiu → Entregue
+        function linhaDoTempo(pedido) {
 
-            const restaurante = pedido.restaurant || pedido.items[0]?.dish.restaurant;
+            if (pedido.status === "CANCELADO") {
+                return `
+<ol class="tracker cancelado" aria-label="Pedido cancelado">
+    <li>Cancelado</li><li></li><li></li><li></li>
+</ol>`;
+            }
+
+            const atual = ETAPAS.indexOf(pedido.status);
 
             return `
-<div class="pedido-card ${pedido.id === novoPedido ? "pedido-destaque" : ""}">
-
-    <div class="order-card-header">
-
-        <div>
-            <span class="order-tag">
-                PEDIDO • ${escapar(App.data(pedido.createdAt))}
-            </span>
-            <h2>#${pedido.id}${restaurante ? ` · ${escapar(restaurante.name)}` : ""}</h2>
-        </div>
-
-        <strong class="status ${pedido.status.toLowerCase()}">
-            ${App.statusTexto(pedido.status)}
-        </strong>
-
-    </div>
-
-    <div class="order-products">
-
-        <span class="order-section-title">PRODUTOS</span>
-
-        ${pedido.items.map(item => `
-            <div class="order-product">
-
-                <div>
-                    <h3>${escapar(item.dish.name)}</h3>
-                    <span>Quantidade: ${item.quantity} × ${preco(item.price)}</span>
-                </div>
-
-                <strong>${preco(item.price * item.quantity)}</strong>
-
-            </div>
-        `).join("")}
-
-    </div>
-
-    <div class="order-details">
-        ${pedido.address ? `<span>📍 ${escapar(pedido.address)}</span>` : ""}
-        ${pedido.note ? `<span>📝 ${escapar(pedido.note)}</span>` : ""}
-        <span>💳 ${App.pagamentoTexto(pedido.paymentMethod)}${pedido.changeFor ? ` · troco para ${preco(pedido.changeFor)}` : ""}</span>
-        ${pedido.deliveryFee > 0 ? `<span>🛵 Taxa de entrega ${preco(pedido.deliveryFee)}</span>` : ""}
-    </div>
-
-    <div class="order-total">
-        <span>Total do pedido</span>
-        <strong>${preco(pedido.total)}</strong>
-    </div>
-
-    ${blocoAvaliacao(pedido)}
-
-    ${pedido.status === "PENDENTE" ? `
-    <button class="order-cancel" onclick="cancelarPedido(${pedido.id})">
-        Cancelar pedido
-    </button>` : ""}
-
-</div>`;
+<ol class="tracker" aria-label="Andamento: ${App.statusTexto(pedido.status)}">
+    ${ETAPAS.map((etapa, i) => `
+    <li class="${i < atual || pedido.status === "ENTREGUE" ? "feito" : ""} ${i === atual && pedido.status !== "ENTREGUE" ? "atual" : ""}">
+        ${App.statusTexto(etapa)}
+    </li>`).join("")}
+</ol>`;
 
         }
 
@@ -128,30 +78,131 @@
 
             if (pedido.review) {
                 return `
-    <div class="order-review done">
-        <span>Sua avaliação</span>
-        <strong class="review-stars">${App.estrelas(pedido.review.rating)}</strong>
-        ${pedido.review.comment ? `<p>${escapar(pedido.review.comment)}</p>` : ""}
-    </div>`;
+<div class="review-form">
+    <span>Sua avaliação</span>
+    <span class="stars">${App.estrelas(pedido.review.rating)}</span>
+    ${pedido.review.comment ? `<p>${escapar(pedido.review.comment)}</p>` : ""}
+</div>`;
             }
 
-            if (pedido.status !== "ENTREGUE") {
-                return "";
-            }
+            if (pedido.status !== "ENTREGUE") return "";
 
             return `
-    <form class="order-review" onsubmit="avaliar(event, ${pedido.id})">
-        <span>Como foi o pedido?</span>
-        <div class="star-input">
-            ${[5, 4, 3, 2, 1].map(n => `
-            <input type="radio" id="nota-${pedido.id}-${n}" name="nota" value="${n}" required>
-            <label for="nota-${pedido.id}-${n}" title="${n} estrela${n > 1 ? "s" : ""}">★</label>`).join("")}
-        </div>
-        <textarea name="comentario" maxlength="300" placeholder="Conte o que achou (opcional)"></textarea>
-        <button type="submit" class="btn-photo">Enviar avaliação</button>
-    </form>`;
+<form class="review-form" onsubmit="avaliar(event, ${pedido.id})">
+    <span>Como foi o pedido?</span>
+    <div class="star-input">
+        ${[5, 4, 3, 2, 1].map(n => `
+        <input type="radio" id="nota-${pedido.id}-${n}" name="nota" value="${n}" required>
+        <label for="nota-${pedido.id}-${n}" title="${n} estrela${n > 1 ? "s" : ""}">★</label>`).join("")}
+    </div>
+    <textarea name="comentario" maxlength="300" placeholder="Conte o que achou (opcional)"></textarea>
+    <button type="submit" class="btn btn-neon btn-sm">Enviar avaliação</button>
+</form>`;
 
         }
+
+        function cartaoPedido(pedido) {
+
+            const restaurante = pedido.restaurant || pedido.items[0]?.dish.restaurant;
+
+            return `
+<article class="panel order ${pedido.id === novoPedido ? "destaque" : ""}">
+
+    <header class="order-head">
+        <div>
+            <span class="crt">#${String(pedido.id).padStart(4, "0")}</span>
+            <h3>${restaurante ? escapar(restaurante.name) : "Pedido"}</h3>
+            <small>${escapar(App.data(pedido.createdAt))}</small>
+        </div>
+        <span class="status ${pedido.status.toLowerCase()}">${App.statusTexto(pedido.status)}</span>
+    </header>
+
+    ${linhaDoTempo(pedido)}
+
+    <div class="order-body">
+
+        <ul class="order-items">
+            ${pedido.items.map(item => `
+            <li>
+                <span class="qtd">${item.quantity}×</span>
+                <span>${escapar(item.dish.name)}</span>
+                <span class="preco">${preco(item.price * item.quantity)}</span>
+            </li>`).join("")}
+        </ul>
+
+        <div class="order-info">
+            ${pedido.address ? `<span>📍 ${escapar(pedido.address)}</span>` : ""}
+            ${pedido.note ? `<span>📝 ${escapar(pedido.note)}</span>` : ""}
+            <span>💳 ${App.pagamentoTexto(pedido.paymentMethod)}${pedido.changeFor ? `, troco para ${preco(pedido.changeFor)}` : ""}</span>
+            ${pedido.deliveryFee > 0 ? `<span>🛵 Entrega ${preco(pedido.deliveryFee)}</span>` : ""}
+            <div class="order-total"><span>Total</span><span class="preco">${preco(pedido.total)}</span></div>
+        </div>
+
+    </div>
+
+    ${pedido.status === "PENDENTE" ? `
+    <div class="order-actions">
+        <button class="btn btn-danger btn-sm" onclick="cancelarPedido(${pedido.id})">Cancelar pedido</button>
+    </div>` : ""}
+
+    ${blocoAvaliacao(pedido)}
+
+</article>`;
+
+        }
+
+        function mostrar() {
+
+            const container = document.getElementById("pedidos");
+
+            const lista = filtro === "andamento"
+                ? pedidos.filter(p => !FINALIZADOS.includes(p.status) || p.id === novoPedido || (p.status === "ENTREGUE" && !p.review))
+                : pedidos;
+
+            let html;
+
+            if (pedidos.length === 0) {
+                html = `<p class="empty"><span class="crt">nenhum sinal por aqui</span>Você ainda não fez pedidos. <a href="/">Escolher um restaurante</a></p>`;
+            } else if (lista.length === 0) {
+                html = `<p class="empty">Nada em andamento agora. Veja o histórico em "Todos".</p>`;
+            } else {
+                html = lista.map(cartaoPedido).join("");
+            }
+
+            // Só redesenha se mudou e se a pessoa não estiver digitando uma avaliação
+            const digitando = container.contains(document.activeElement) &&
+                ["TEXTAREA", "INPUT"].includes(document.activeElement.tagName);
+
+            if (html !== ultimoConteudo && !digitando) {
+                container.innerHTML = html;
+                ultimoConteudo = html;
+            }
+
+        }
+
+        async function carregarPedidos() {
+
+            try {
+                pedidos = await App.api("/orders", { autenticado: true });
+                mostrar();
+            } catch (erro) {
+                document.getElementById("pedidos").innerHTML = `<p class="empty">${escapar(erro.message)}</p>`;
+                ultimoConteudo = "";
+            }
+
+        }
+
+        document.getElementById("filtros").addEventListener("click", evento => {
+
+            const chip = evento.target.closest(".chip");
+
+            if (!chip) return;
+
+            filtro = chip.dataset.filtro;
+            document.querySelectorAll("#filtros .chip").forEach(c => c.classList.toggle("ativo", c === chip));
+            mostrar();
+
+        });
 
         async function avaliar(evento, id) {
 
@@ -177,46 +228,13 @@
 
         }
 
-        async function carregarPedidos() {
-
-            const container = document.getElementById("pedidos");
-
-            try {
-
-                const pedidos = await App.api("/orders", { autenticado: true });
-
-                const html = pedidos.length === 0
-                    ? `<p class="empty-state">Você ainda não fez pedidos. <a href="/">Escolher um restaurante</a></p>`
-                    : pedidos.map(cartaoPedido).join("");
-
-                // Só redesenha se algo mudou (evita a tela "piscar") e se a pessoa
-                // não estiver digitando uma avaliação
-                const digitando = container.contains(document.activeElement) &&
-                    ["TEXTAREA", "INPUT"].includes(document.activeElement.tagName);
-
-                if (html !== ultimoConteudo && !digitando) {
-                    container.innerHTML = html;
-                    ultimoConteudo = html;
-                }
-
-            } catch (erro) {
-
-                container.innerHTML =
-                    `<p class="empty-state">${escapar(erro.message)}</p>`;
-                ultimoConteudo = "";
-
-            }
-
-        }
-
         async function cancelarPedido(id) {
 
-            if (!(await UI.confirmar(`Cancelar o pedido #${id}?`, { confirmar: "Cancelar pedido", perigo: true }))) {
-                return;
-            }
+            if (!(await UI.confirmar(`Cancelar o pedido #${id}?`, { confirmar: "Cancelar pedido", perigo: true }))) return;
 
             try {
                 await App.api(`/orders/${id}/cancel`, { method: "PATCH", autenticado: true });
+                UI.sucesso(`Pedido #${id} cancelado.`);
             } catch (erro) {
                 UI.erro(erro);
             }

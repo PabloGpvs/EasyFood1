@@ -213,6 +213,32 @@ const App = (() => {
         return fonte;
     }
 
+    // Ícone para restaurantes e pratos sem foto, pela categoria
+    const EMOJIS = [
+        [/pizza/i, "🍕"],
+        [/japon|sushi|temaki|oriental/i, "🍣"],
+        [/hamb|burger|lanche|sandu/i, "🍔"],
+        [/doce|sobremesa|bolo|confeit|brigad/i, "🍰"],
+        [/a[çc]a[íi]|sorvete|gelad/i, "🍨"],
+        [/bebida|suco|refri/i, "🥤"],
+        [/caf[ée]|padaria|p[ãa]o/i, "🥐"],
+        [/churras|carne|grelhad/i, "🥩"],
+        [/frango|galeto/i, "🍗"],
+        [/salada|vegan|vegetar|saud/i, "🥗"],
+        [/massa|italian|macarr|lasanha/i, "🍝"],
+        [/mexic|taco|burrito/i, "🌮"],
+        [/acompanha|por[çc][ãa]o|batata/i, "🍟"],
+        [/peixe|frutos do mar|camar/i, "🐟"]
+    ];
+
+    function emoji(...categorias) {
+        for (const texto of categorias) {
+            const achado = EMOJIS.find(([regra]) => regra.test(texto || ""));
+            if (achado) return achado[1];
+        }
+        return "🍽️";
+    }
+
     /** Evita que textos com < > " quebrem o HTML montado com template strings. */
     function escapar(texto) {
         return String(texto ?? "")
@@ -244,6 +270,7 @@ const App = (() => {
         estrelas,
         notaResumo,
         ouvirPedidos,
+        emoji,
         escapar
     };
 })();

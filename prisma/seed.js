@@ -54,7 +54,15 @@ async function main() {
     }
   }
 
+  // Conta de administrador: dona da plataforma, gerencia tudo
+  await prisma.user.upsert({
+    where: { email: "pablo@easyfood.com" },
+    update: { name: "Pablo Gabriel", role: "ADMIN", password: await bcrypt.hash("1909", 10) },
+    create: { name: "Pablo Gabriel", email: "pablo@easyfood.com", password: await bcrypt.hash("1909", 10), role: "ADMIN" }
+  });
+
   console.log("Restaurantes e pratos de exemplo cadastrados com sucesso!");
+  console.log("Administrador: pablo@easyfood.com (senha 1909)");
   console.log("Logins dos donos: pizza@easyfood.com, burger@easyfood.com, sushi@easyfood.com (senha 123456)");
 }
 

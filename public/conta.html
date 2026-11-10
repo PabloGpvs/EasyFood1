@@ -4,115 +4,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Minha conta - EasyFood</title>
-
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=VT323&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <title>Minha conta - EasyFood</title>
 </head>
 
-<body>
+<body data-pagina="conta">
 
-    <header class="panel-header">
+    <main class="app-main" id="conteudo" hidden>
 
-        <div>
-            <span class="panel-tag">EASYFOOD • CONTA</span>
+        <header class="page-head">
+            <div>
+                <span class="kicker">perfil do usuário</span>
+                <h1>Minha conta</h1>
+                <p class="page-sub">Seus dados, senha, endereços e tipo de conta.</p>
+            </div>
+        </header>
 
-            <h1>Minha conta</h1>
+        <div class="conta-grid">
 
-            <p>Seus dados, senha, endereços e tipo de conta.</p>
-        </div>
+            <!-- Perfil -->
+            <section class="panel stack">
 
-        <button class="panel-back" onclick="window.location.href='/'">
-            ← Início
-        </button>
+                <div class="panel-title"><h2>Perfil</h2></div>
 
-    </header>
-
-    <main id="conteudo" hidden>
-
-        <!-- PERFIL -->
-
-        <div class="panel-section-heading">
-            <span>PERFIL</span>
-            <h2>Seus dados</h2>
-        </div>
-
-        <section class="panel-box restaurant-photo-box">
-
-            <div class="photo-frame avatar-frame" id="foto"></div>
-
-            <form id="formPerfil" class="restaurant-edit">
-
-                <div class="restaurant-edit-fields">
-                    <input id="nome" type="text" placeholder="Seu nome" minlength="2" maxlength="80" required>
-                    <input id="email" type="email" disabled title="O e-mail não pode ser alterado">
+                <div class="profile">
+                    <div class="profile-photo" id="foto"></div>
+                    <div class="row">
+                        <button type="button" class="btn btn-cyan btn-sm" id="btnFoto">📷 Foto</button>
+                        <button type="button" class="btn btn-sm" id="btnRemoverFoto" hidden>Remover foto</button>
+                    </div>
                 </div>
 
-                <div class="photo-actions">
-                    <button type="submit" class="btn-photo">Salvar nome</button>
-                    <button type="button" class="btn-photo-remove" id="btnFoto">📷 Foto</button>
-                    <button type="button" class="btn-photo-remove" id="btnRemoverFoto" hidden>Remover foto</button>
+                <form id="formPerfil" class="stack">
+                    <label class="field"><span>Nome</span><input id="nome" type="text" minlength="2" maxlength="80" required></label>
+                    <label class="field"><span>E-mail</span><input id="email" type="email" disabled title="O e-mail não pode ser alterado"></label>
+                    <button type="submit" class="btn btn-neon">Salvar nome</button>
+                </form>
+
+            </section>
+
+            <!-- Senha -->
+            <section class="panel">
+
+                <div class="panel-title"><h2>Trocar senha</h2></div>
+
+                <form id="formSenha" class="stack">
+                    <label class="field"><span>Senha atual</span><input id="senhaAtual" type="password" autocomplete="current-password" required></label>
+                    <label class="field"><span>Nova senha</span><input id="senhaNova" type="password" minlength="6" placeholder="Mínimo 6 caracteres" autocomplete="new-password" required></label>
+                    <label class="field"><span>Repita a nova senha</span><input id="senhaNova2" type="password" minlength="6" autocomplete="new-password" required></label>
+                    <button type="submit" class="btn btn-neon">Trocar senha</button>
+                </form>
+
+            </section>
+
+            <!-- Endereços -->
+            <section class="panel stack">
+
+                <div class="panel-title">
+                    <h2>Endereços salvos</h2>
+                    <small>aparecem no checkout</small>
                 </div>
 
-            </form>
+                <div id="enderecos" class="stack"></div>
 
-        </section>
+                <form id="formEndereco" class="stack">
+                    <label class="field"><span>Nome do endereço</span><input id="apelido" type="text" placeholder="Casa, Trabalho..." maxlength="30" required></label>
+                    <label class="field"><span>Endereço</span><input id="rua" type="text" placeholder="Rua, número, bairro e complemento" maxlength="200" required></label>
+                    <button type="submit" class="btn btn-cyan">Adicionar endereço</button>
+                </form>
 
+            </section>
 
-        <!-- SENHA -->
+            <!-- Tipo de conta -->
+            <section class="panel stack" id="tipoConta"></section>
 
-        <div class="panel-section-heading">
-            <span>SEGURANÇA</span>
-            <h2>Trocar senha</h2>
         </div>
-
-        <section class="panel-box">
-
-            <form id="formSenha" class="account-form">
-                <input id="senhaAtual" type="password" placeholder="Senha atual" autocomplete="current-password" required>
-                <input id="senhaNova" type="password" placeholder="Nova senha (mínimo 6)" minlength="6" autocomplete="new-password" required>
-                <input id="senhaNova2" type="password" placeholder="Repita a nova senha" minlength="6" autocomplete="new-password" required>
-                <button type="submit" class="btn-photo">Trocar senha</button>
-            </form>
-
-        </section>
-
-
-        <!-- ENDEREÇOS -->
-
-        <div class="panel-section-heading">
-            <span>ENTREGA</span>
-            <h2>Endereços salvos</h2>
-            <p>Escolha um deles na hora de finalizar o pedido.</p>
-        </div>
-
-        <section class="panel-box">
-
-            <div id="enderecos" class="address-list"></div>
-
-            <form id="formEndereco" class="account-form">
-                <input id="apelido" type="text" placeholder="Nome (ex.: Casa, Trabalho)" maxlength="30" required>
-                <input id="rua" type="text" placeholder="Rua, número, bairro e complemento" maxlength="200" required>
-                <button type="submit" class="btn-photo">Adicionar endereço</button>
-            </form>
-
-        </section>
-
-
-        <!-- TIPO DE CONTA -->
-
-        <div class="panel-section-heading">
-            <span>RESTAURANTE</span>
-            <h2>Venda no EasyFood</h2>
-        </div>
-
-        <section class="panel-box" id="tipoConta"></section>
 
     </main>
 
     <script src="/js/app.js"></script>
     <script src="/js/ui.js"></script>
     <script src="/js/imagens.js"></script>
+    <script src="/js/shell.js"></script>
 
     <script>
 
@@ -130,14 +106,12 @@
 
             document.getElementById("nome").value = usuario.name;
             document.getElementById("email").value = usuario.email;
-
-            document.getElementById("btnFoto").textContent =
-                usuario.imageUrl ? "📷 Trocar foto" : "📷 Enviar foto";
-
+            document.getElementById("btnFoto").textContent = usuario.imageUrl ? "📷 Trocar foto" : "📷 Enviar foto";
             document.getElementById("btnRemoverFoto").hidden = !usuario.imageUrl;
 
-            // Mantém o nome salvo no navegador atualizado
+            // Mantém nome, foto e tipo de conta da barra lateral em dia
             App.salvarSessao(App.token(), usuario);
+            Shell.redesenhar();
 
             mostrarTipoConta();
 
@@ -154,7 +128,7 @@
                     body: { name: document.getElementById("nome").value }
                 });
                 mostrarPerfil();
-                UI.sucesso("Nome atualizado!");
+                UI.sucesso("Nome atualizado.");
             } catch (erro) {
                 UI.erro(erro);
             }
@@ -173,7 +147,7 @@
             try {
                 usuario = await Imagens.enviar("/auth/me/image", arquivo);
                 mostrarPerfil();
-                UI.sucesso("Foto atualizada!");
+                UI.sucesso("Foto atualizada.");
             } catch (erro) {
                 UI.erro(erro);
             } finally {
@@ -218,7 +192,7 @@
                     }
                 });
                 evento.target.reset();
-                UI.sucesso("Senha alterada!");
+                UI.sucesso("Senha alterada.");
             } catch (erro) {
                 UI.erro(erro);
             }
@@ -233,15 +207,15 @@
             const enderecos = await App.api("/auth/me/addresses", { autenticado: true });
 
             document.getElementById("enderecos").innerHTML = enderecos.length === 0
-                ? `<p class="panel-empty">Nenhum endereço salvo.</p>`
+                ? `<p class="hint">Nenhum endereço salvo.</p>`
                 : enderecos.map(endereco => `
-    <div class="address-item">
-        <div>
-            <strong>${escapar(endereco.label)}</strong>
-            <span>${escapar(endereco.street)}</span>
-        </div>
-        <button class="btn-danger" onclick="removerEndereco(${endereco.id})">Remover</button>
-    </div>`).join("");
+<div class="address">
+    <div>
+        <strong>${escapar(endereco.label)}</strong>
+        <span>${escapar(endereco.street)}</span>
+    </div>
+    <button class="btn btn-danger btn-sm" onclick="removerEndereco(${endereco.id})">Remover</button>
+</div>`).join("");
 
         }
 
@@ -273,7 +247,7 @@
                 });
                 evento.target.reset();
                 await carregarEnderecos();
-                UI.sucesso("Endereço salvo!");
+                UI.sucesso("Endereço salvo.");
             } catch (erro) {
                 UI.erro(erro);
             }
@@ -287,19 +261,32 @@
 
             const box = document.getElementById("tipoConta");
 
+            if (usuario.role === "ADMIN") {
+                box.innerHTML = `
+<div class="panel-title"><h2>Administração</h2><span class="badge badge-live">Admin</span></div>
+<p>Sua conta é dona da plataforma: gerencia todos os restaurantes, cardápios e pedidos do EasyFood.</p>
+<div class="row">
+    <a class="btn btn-neon" href="/painel.html">Abrir painel</a>
+    <a class="btn" href="/?cadastrar=1">+ Novo restaurante</a>
+</div>`;
+                return;
+            }
+
             if (usuario.role === "DONO") {
                 box.innerHTML = `
-    <p class="account-role">🏪 Sua conta é de <strong>dono de restaurante</strong>. Você pode pedir comida e também vender.</p>
-    <div class="photo-actions">
-        <button class="btn-photo" onclick="window.location.href='/painel.html'">Abrir painel</button>
-        <button class="btn-photo-remove" onclick="window.location.href='/?cadastrar=1'">+ Cadastrar restaurante</button>
-    </div>`;
+<div class="panel-title"><h2>Seu restaurante</h2><span class="badge badge-live">Dono</span></div>
+<p>Sua conta pode pedir comida e também vender no EasyFood.</p>
+<div class="row">
+    <a class="btn btn-neon" href="/painel.html">Abrir painel</a>
+    <a class="btn" href="/?cadastrar=1">+ Novo restaurante</a>
+</div>`;
                 return;
             }
 
             box.innerHTML = `
-    <p class="account-role">Tem um restaurante? Ative o modo restaurante para cadastrar o seu e receber pedidos. Você continua podendo pedir comida.</p>
-    <button class="btn-photo" onclick="virarDono()">🏪 Quero vender no EasyFood</button>`;
+<div class="panel-title"><h2>Venda no EasyFood</h2><span class="badge">Cliente</span></div>
+<p>Tem um restaurante? Ative o modo restaurante para cadastrar o seu e receber pedidos. Você continua podendo pedir comida.</p>
+<button class="btn btn-neon" onclick="virarDono()">Ativar modo restaurante</button>`;
 
         }
 
@@ -309,7 +296,7 @@
 
             try {
                 usuario = await App.api("/auth/me/become-owner", { method: "POST", autenticado: true });
-                mostrarPerfil();
+                App.salvarSessao(App.token(), usuario);
                 UI.avisoNaProximaPagina("Modo restaurante ativado! Cadastre seu restaurante.");
                 window.location.href = "/?cadastrar=1";
             } catch (erro) {

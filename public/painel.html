@@ -4,157 +4,147 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Painel do Restaurante - EasyFood</title>
-
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=VT323&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <title>Painel - EasyFood</title>
 </head>
 
-<body>
+<body data-pagina="painel">
 
-    <header class="panel-header">
+    <main class="app-main">
 
-        <div>
-            <span class="panel-tag">EASYFOOD • GESTÃO</span>
+        <header class="page-head">
+            <div>
+                <span class="kicker" id="statusLoja">painel do restaurante</span>
+                <h1 id="tituloPainel">Painel</h1>
+                <p class="page-sub" id="subPainel">Carregando...</p>
+            </div>
 
-            <h1>Painel do Restaurante</h1>
+            <div class="row">
+                <select id="seletorRestaurante" aria-label="Escolher restaurante" hidden></select>
+                <a class="btn btn-sm" id="verLoja" href="/">Ver como cliente</a>
+            </div>
+        </header>
 
-            <p>
-                Gerencie os dados, o cardápio e os pedidos do seu restaurante.
-            </p>
-        </div>
-
-        <div class="panel-header-actions">
-
-            <select id="seletorRestaurante" class="panel-select" aria-label="Escolher restaurante" hidden></select>
-
-            <button
-                class="panel-back"
-                onclick="window.location.href='/'"
-            >
-                ← Início
-            </button>
-
-        </div>
-
-    </header>
-
-    <main>
-
-        <section id="semRestaurante" class="panel-box" hidden>
-            <p class="empty-state">
-                Você ainda não tem restaurante cadastrado.
-                <a href="/">Cadastre um na página inicial</a> para usar o painel.
-            </p>
+        <section id="semRestaurante" class="empty" hidden>
+            <span class="crt">sem restaurante</span>
+            Você ainda não tem restaurante. <a href="/?cadastrar=1">Cadastre o seu</a> para usar o painel.
         </section>
 
         <div id="conteudo" hidden>
 
-            <!-- MEU RESTAURANTE -->
+            <nav class="tabs" role="tablist">
+                <button class="tab ativo" data-aba="pedidos" role="tab">Pedidos <span class="crt" id="contPendentes"></span></button>
+                <button class="tab" data-aba="cardapio" role="tab">Cardápio</button>
+                <button class="tab" data-aba="restaurante" role="tab">Restaurante</button>
+            </nav>
 
-            <div class="panel-section-heading">
-                <span>RESTAURANTE</span>
-                <h2>Dados e foto</h2>
-                <p>A foto aparece na página inicial e no topo do cardápio.</p>
-            </div>
 
-            <section class="panel-box restaurant-photo-box">
+            <!-- ABA: PEDIDOS -->
 
-                <div class="photo-frame" id="fotoRestaurante"></div>
+            <section data-painel="pedidos">
 
-                <form id="formRestaurante" class="restaurant-edit">
+                <div class="kpis">
+                    <div class="panel kpi"><span>Pedidos hoje</span><strong id="kpiHoje">0</strong></div>
+                    <div class="panel kpi"><span>Aguardando</span><strong id="kpiPendentes">0</strong></div>
+                    <div class="panel kpi"><span>Faturamento hoje</span><strong id="kpiFaturamento">R$ 0</strong></div>
+                    <div class="panel kpi"><span>Nota média</span><strong id="kpiNota">—</strong></div>
+                </div>
 
-                    <p id="notaRestaurante" class="rating"></p>
+                <div class="kanban" id="kanban"></div>
 
-                    <div class="restaurant-edit-fields">
-                        <label>Nome
-                            <input id="restNome" type="text" placeholder="Nome do restaurante" minlength="2" maxlength="80" required>
-                        </label>
-                        <label>Categoria
-                            <input id="restCategoria" type="text" placeholder="Categoria" minlength="2" maxlength="80" required>
-                        </label>
-                        <label>Taxa de entrega (R$)
-                            <input id="restTaxa" type="number" min="0" max="1000" step="0.01" placeholder="0 = grátis">
-                        </label>
-                        <label>Pedido mínimo (R$)
-                            <input id="restMinimo" type="number" min="0" max="1000" step="0.01" placeholder="0 = sem mínimo">
-                        </label>
-                        <label>Abre às
-                            <input id="restAbre" type="time">
-                        </label>
-                        <label>Fecha às
-                            <input id="restFecha" type="time">
-                        </label>
-                    </div>
+                <div class="section-title kanban-done">
+                    <h2>Finalizados</h2>
+                    <p>Entregues e cancelados</p>
+                </div>
 
-                    <small class="form-hint">Deixe os horários vazios para ficar sempre aberto. Pode virar a noite (ex.: 18:00 às 02:00).</small>
-
-                    <div class="photo-actions">
-                        <button type="submit" class="btn-photo">Salvar dados</button>
-                        <button type="button" class="btn-photo-remove" id="btnFotoRestaurante">📷 Foto</button>
-                        <button type="button" class="btn-photo-remove" id="btnRemoverFotoRestaurante" hidden>Remover foto</button>
-                        <button type="button" class="btn-danger" id="btnExcluirRestaurante">Excluir restaurante</button>
-                    </div>
-
-                </form>
+                <div class="orders" id="finalizados"></div>
 
             </section>
 
 
-            <!-- CARDÁPIO -->
+            <!-- ABA: CARDÁPIO -->
 
-            <div class="panel-section-heading">
-                <span>CARDÁPIO</span>
-                <h2>Pratos</h2>
-                <p>Cadastre pratos, envie fotos, edite preços e marque o que esgotou.</p>
-            </div>
+            <section data-painel="cardapio" hidden>
 
-            <section class="panel-box">
+                <div class="menu-admin">
 
-                <form id="formPrato" class="dish-form">
+                    <form id="formPrato" class="panel stack">
 
-                    <label class="upload-field upload-square" for="fotoPrato">
-                        <img id="previaPrato" class="upload-preview" alt="Prévia da foto do prato" hidden>
-                        <span class="upload-text">
-                            <strong id="textoFotoPrato">📷 Foto do prato</strong>
-                            <small>JPEG, PNG ou WebP até 5 MB</small>
-                        </span>
-                        <input id="fotoPrato" type="file" accept="image/jpeg,image/png,image/webp" hidden>
-                    </label>
+                        <div class="panel-title"><h2>Novo prato</h2></div>
 
-                    <div class="dish-form-fields">
-                        <input id="pratoNome" type="text" placeholder="Nome do prato" maxlength="80" required>
-                        <input id="pratoCategoria" type="text" placeholder="Categoria (ex.: Pizza, Bebida)" maxlength="80" required>
-                        <input id="pratoPreco" type="number" placeholder="Preço (R$)" min="0" step="0.01" required>
-                        <input id="pratoDescricao" type="text" placeholder="Descrição (opcional)" maxlength="200">
+                        <label class="upload-field upload-square" for="fotoPrato">
+                            <img id="previaPrato" class="upload-preview" alt="Prévia da foto do prato" hidden>
+                            <span class="upload-text">
+                                <strong id="textoFotoPrato">📷 Foto do prato</strong>
+                                <small>JPEG, PNG ou WebP até 5 MB</small>
+                            </span>
+                            <input id="fotoPrato" type="file" accept="image/jpeg,image/png,image/webp" hidden>
+                        </label>
 
-                        <button type="submit" id="btnAdicionarPrato">
-                            Adicionar prato
-                            <span>→</span>
-                        </button>
+                        <label class="field"><span>Nome</span><input id="pratoNome" type="text" maxlength="80" required></label>
+                        <label class="field"><span>Categoria</span><input id="pratoCategoria" type="text" placeholder="Ex.: Pizza, Bebida" maxlength="80" required></label>
+                        <label class="field"><span>Preço (R$)</span><input id="pratoPreco" type="number" min="0" step="0.01" required></label>
+                        <label class="field"><span>Descrição</span><input id="pratoDescricao" type="text" placeholder="Opcional" maxlength="200"></label>
+
+                        <button type="submit" id="btnAdicionarPrato" class="btn btn-neon btn-block">Adicionar prato</button>
+
+                    </form>
+
+                    <div>
+                        <div class="panel-title">
+                            <h2>Pratos</h2>
+                            <small id="contPratos"></small>
+                        </div>
+                        <div id="pratos" class="dish-admin-grid"></div>
                     </div>
 
-                </form>
-
-                <div id="pratos" class="panel-dishes">
-                    Carregando cardápio...
                 </div>
 
             </section>
 
 
-            <!-- PEDIDOS -->
+            <!-- ABA: RESTAURANTE -->
 
-            <div class="panel-section-heading">
-                <span>PEDIDOS</span>
-                <h2>Pedidos recebidos</h2>
-                <p>Atualiza na hora quando chega pedido novo. Pedidos novos aparecem destacados.</p>
-            </div>
+            <section data-painel="restaurante" hidden>
 
-            <div id="filtrosPedidos" class="category-chips panel-filters"></div>
+                <div class="rest-admin">
 
-            <section id="pedidos">
-                Carregando pedidos...
+                    <div class="photo-box">
+                        <div class="thumb" id="fotoRestaurante"></div>
+                        <button type="button" class="btn btn-cyan btn-sm" id="btnFotoRestaurante">📷 Foto</button>
+                        <button type="button" class="btn btn-sm" id="btnRemoverFotoRestaurante" hidden>Remover foto</button>
+                    </div>
+
+                    <form id="formRestaurante" class="panel stack">
+
+                        <div class="panel-title">
+                            <h2>Dados do restaurante</h2>
+                            <span id="notaRestaurante"></span>
+                        </div>
+
+                        <div class="form-grid">
+                            <label class="field"><span>Nome</span><input id="restNome" type="text" minlength="2" maxlength="80" required></label>
+                            <label class="field"><span>Categoria</span><input id="restCategoria" type="text" minlength="2" maxlength="80" required></label>
+                            <label class="field"><span>Taxa de entrega (R$)</span><input id="restTaxa" type="number" min="0" max="1000" step="0.01" placeholder="0 = grátis"></label>
+                            <label class="field"><span>Pedido mínimo (R$)</span><input id="restMinimo" type="number" min="0" max="1000" step="0.01" placeholder="0 = sem mínimo"></label>
+                            <label class="field"><span>Abre às</span><input id="restAbre" type="time"></label>
+                            <label class="field"><span>Fecha às</span><input id="restFecha" type="time"></label>
+                        </div>
+
+                        <p class="hint">Deixe os horários vazios para ficar sempre aberto. Pode virar a noite (ex.: 18:00 às 02:00).</p>
+
+                        <div class="row">
+                            <button type="submit" class="btn btn-neon">Salvar dados</button>
+                            <button type="button" class="btn btn-danger" id="btnExcluirRestaurante">Excluir restaurante</button>
+                        </div>
+
+                    </form>
+
+                </div>
+
             </section>
 
         </div>
@@ -164,59 +154,87 @@
     <script src="/js/app.js"></script>
     <script src="/js/ui.js"></script>
     <script src="/js/imagens.js"></script>
+    <script src="/js/shell.js"></script>
 
     <script>
 
         const { escapar, preco } = App;
 
+        const COLUNAS = ["PENDENTE", "PREPARANDO", "SAIU_PARA_ENTREGA"];
+        const PROXIMO = {
+            PENDENTE: ["PREPARANDO", "Aceitar e preparar"],
+            PREPARANDO: ["SAIU_PARA_ENTREGA", "Saiu para entrega"],
+            SAIU_PARA_ENTREGA: ["ENTREGUE", "Marcar entregue"]
+        };
+
         let restauranteId = null;
         let restaurante = null;
         let pratos = [];
         let pratoEditando = null;
-
         let pedidos = [];
-        let filtroStatus = "";
-        let pedidosVistos = null;   // ids já vistos (null = ainda não carregou)
+        let pedidosVistos = null;
         const pedidosNovos = new Set();
         let ultimoHtmlPedidos = "";
         const tituloOriginal = document.title;
 
 
-        // ---------- Início: escolhe o restaurante ----------
+        // ---------- Abas ----------
+
+        function abrirAba(aba) {
+
+            document.querySelectorAll(".tab").forEach(t => t.classList.toggle("ativo", t.dataset.aba === aba));
+            document.querySelectorAll("[data-painel]").forEach(p => { p.hidden = p.dataset.painel !== aba; });
+
+            const url = new URL(window.location);
+            url.searchParams.set("aba", aba);
+            history.replaceState(null, "", url);
+
+        }
+
+        document.querySelector(".tabs").addEventListener("click", evento => {
+            const tab = evento.target.closest(".tab");
+            if (tab) abrirAba(tab.dataset.aba);
+        });
+
+
+        // ---------- Início ----------
 
         async function iniciar() {
 
-            if (!App.exigirLogin()) {
-                return;
-            }
+            if (!App.exigirLogin()) return;
 
             const meus = await App.api("/my-restaurants", { autenticado: true });
 
             if (meus.length === 0) {
                 document.getElementById("semRestaurante").hidden = false;
+                document.getElementById("subPainel").textContent = "";
                 return;
             }
 
-            const pedido = Number(new URLSearchParams(window.location.search).get("id"));
+            const params = new URLSearchParams(window.location.search);
+            const pedido = Number(params.get("id"));
+
             restauranteId = meus.some(r => r.id === pedido) ? pedido : meus[0].id;
 
             const seletor = document.getElementById("seletorRestaurante");
 
             if (meus.length > 1) {
                 seletor.innerHTML = meus.map(r => `
-                    <option value="${r.id}" ${r.id === restauranteId ? "selected" : ""}>
-                        ${escapar(r.name)}
-                    </option>`).join("");
+                    <option value="${r.id}" ${r.id === restauranteId ? "selected" : ""}>${escapar(r.name)}</option>`).join("");
                 seletor.hidden = false;
+                seletor.addEventListener("change", () => {
+                    window.location.href = `/painel.html?id=${seletor.value}`;
+                });
             }
 
-            seletor.addEventListener("change", () => {
-                window.location.href = `/painel.html?id=${seletor.value}`;
-            });
+            const url = new URL(window.location);
+            url.searchParams.set("id", restauranteId);
+            history.replaceState(null, "", url);
 
-            history.replaceState(null, "", `/painel.html?id=${restauranteId}`);
-
+            document.getElementById("verLoja").href = `/restaurant.html?id=${restauranteId}`;
             document.getElementById("conteudo").hidden = false;
+
+            abrirAba(["pedidos", "cardapio", "restaurante"].includes(params.get("aba")) ? params.get("aba") : "pedidos");
 
             await carregarRestaurante();
             await carregarPedidos();
@@ -224,11 +242,7 @@
             // Tempo real: o servidor avisa na hora quando chega pedido novo
             App.ouvirPedidos(({ type, order }) => {
                 if (order.restaurantId !== restauranteId) return;
-
-                if (type === "criado") {
-                    UI.sucesso(`🔔 Novo pedido #${order.id}!`);
-                }
-
+                if (type === "criado") UI.sucesso(`Novo pedido #${order.id}!`);
                 carregarPedidos();
             });
 
@@ -252,9 +266,17 @@
 
         function mostrarRestaurante() {
 
+            document.getElementById("tituloPainel").textContent = restaurante.name;
+            document.getElementById("subPainel").textContent =
+                `${restaurante.category} — ${restaurante.isOpen ? "aberto agora" : "fechado agora"}`;
+            document.getElementById("statusLoja").textContent =
+                restaurante.isOpen ? "loja online" : "loja offline";
+
+            const emoji = App.emoji(restaurante.category);
+
             document.getElementById("fotoRestaurante").innerHTML = restaurante.imageUrl
-                ? `<img src="${escapar(restaurante.imageUrl)}" alt="Foto do restaurante">`
-                : `<span class="photo-empty">🍔</span>`;
+                ? `<img src="${escapar(restaurante.imageUrl)}" alt="Foto do restaurante" data-emoji="${emoji}">`
+                : `<span class="photo-empty">${emoji}</span>`;
 
             document.getElementById("restNome").value = restaurante.name;
             document.getElementById("restCategoria").value = restaurante.category;
@@ -263,160 +285,150 @@
             document.getElementById("restAbre").value = restaurante.opensAt || "";
             document.getElementById("restFecha").value = restaurante.closesAt || "";
 
-            document.getElementById("notaRestaurante").textContent =
-                `${restaurante.isOpen ? "🟢 Aberto agora" : "🔴 Fechado agora"} · ${restaurante.ratingCount ? `${App.notaResumo(restaurante)} avaliações` : "Ainda sem avaliações"}`;
+            document.getElementById("notaRestaurante").innerHTML =
+                `<span class="rating">${restaurante.ratingCount ? `${App.notaResumo(restaurante)} avaliações` : "sem avaliações"}</span>`;
+
+            document.getElementById("kpiNota").textContent =
+                restaurante.ratingCount ? restaurante.ratingAvg.toLocaleString("pt-BR") : "—";
 
             document.getElementById("btnFotoRestaurante").textContent =
                 restaurante.imageUrl ? "📷 Trocar foto" : "📷 Enviar foto";
 
-            document.getElementById("btnRemoverFotoRestaurante").hidden =
-                !restaurante.imageUrl;
+            document.getElementById("btnRemoverFotoRestaurante").hidden = !restaurante.imageUrl;
 
         }
 
-        document
-            .getElementById("formRestaurante")
-            .addEventListener("submit", async evento => {
+        document.getElementById("formRestaurante").addEventListener("submit", async evento => {
 
-                evento.preventDefault();
+            evento.preventDefault();
 
-                try {
+            try {
 
-                    const atualizado = await App.api(`/restaurants/${restauranteId}`, {
-                        method: "PUT",
-                        autenticado: true,
-                        body: {
-                            name: document.getElementById("restNome").value,
-                            category: document.getElementById("restCategoria").value,
-                            deliveryFee: document.getElementById("restTaxa").value || 0,
-                            minOrder: document.getElementById("restMinimo").value || 0,
-                            opensAt: document.getElementById("restAbre").value,
-                            closesAt: document.getElementById("restFecha").value
-                        }
-                    });
-
-                    restaurante = { ...restaurante, ...atualizado };
-                    mostrarRestaurante();
-                    UI.sucesso("Dados do restaurante salvos!");
-
-                } catch (erro) {
-                    UI.erro(erro);
-                }
-
-            });
-
-        document
-            .getElementById("btnFotoRestaurante")
-            .addEventListener("click", async evento => {
-
-                const arquivo = await Imagens.escolherArquivo();
-
-                if (!arquivo) return;
-
-                await comCarregando(evento.target, async () => {
-                    const atualizado = await Imagens.enviar(`/restaurants/${restauranteId}/image`, arquivo);
-                    restaurante = { ...restaurante, ...atualizado };
-                    mostrarRestaurante();
+                const atualizado = await App.api(`/restaurants/${restauranteId}`, {
+                    method: "PUT",
+                    autenticado: true,
+                    body: {
+                        name: document.getElementById("restNome").value,
+                        category: document.getElementById("restCategoria").value,
+                        deliveryFee: document.getElementById("restTaxa").value || 0,
+                        minOrder: document.getElementById("restMinimo").value || 0,
+                        opensAt: document.getElementById("restAbre").value,
+                        closesAt: document.getElementById("restFecha").value
+                    }
                 });
 
+                restaurante = { ...restaurante, ...atualizado };
+                mostrarRestaurante();
+                UI.sucesso("Dados do restaurante salvos.");
+
+            } catch (erro) {
+                UI.erro(erro);
+            }
+
+        });
+
+        document.getElementById("btnFotoRestaurante").addEventListener("click", async evento => {
+
+            const arquivo = await Imagens.escolherArquivo();
+
+            if (!arquivo) return;
+
+            await comCarregando(evento.target, async () => {
+                const atualizado = await Imagens.enviar(`/restaurants/${restauranteId}/image`, arquivo);
+                restaurante = { ...restaurante, ...atualizado };
+                mostrarRestaurante();
             });
 
-        document
-            .getElementById("btnRemoverFotoRestaurante")
-            .addEventListener("click", async () => {
+        });
 
-                if (!(await UI.confirmar("Remover a foto do restaurante?", { confirmar: "Remover", perigo: true }))) return;
+        document.getElementById("btnRemoverFotoRestaurante").addEventListener("click", async () => {
 
-                try {
-                    const atualizado = await Imagens.remover(`/restaurants/${restauranteId}/image`);
-                    restaurante = { ...restaurante, ...atualizado };
-                    mostrarRestaurante();
-                } catch (erro) {
-                    UI.erro(erro);
-                }
+            if (!(await UI.confirmar("Remover a foto do restaurante?", { confirmar: "Remover", perigo: true }))) return;
 
-            });
+            try {
+                const atualizado = await Imagens.remover(`/restaurants/${restauranteId}/image`);
+                restaurante = { ...restaurante, ...atualizado };
+                mostrarRestaurante();
+            } catch (erro) {
+                UI.erro(erro);
+            }
 
-        document
-            .getElementById("btnExcluirRestaurante")
-            .addEventListener("click", async () => {
+        });
 
-                if (!(await UI.confirmar(`Excluir o restaurante "${restaurante.name}"? Isso não pode ser desfeito.`, { confirmar: "Excluir", perigo: true }))) return;
+        document.getElementById("btnExcluirRestaurante").addEventListener("click", async () => {
 
-                try {
-                    await App.api(`/restaurants/${restauranteId}`, { method: "DELETE", autenticado: true });
-                    UI.avisoNaProximaPagina("Restaurante excluído.");
-                    window.location.href = "/painel.html";
-                } catch (erro) {
-                    UI.erro(erro);
-                }
+            if (!(await UI.confirmar(`Excluir o restaurante "${restaurante.name}"? Isso não pode ser desfeito.`, { confirmar: "Excluir", perigo: true }))) return;
 
-            });
+            try {
+                await App.api(`/restaurants/${restauranteId}`, { method: "DELETE", autenticado: true });
+                UI.avisoNaProximaPagina("Restaurante excluído.");
+                window.location.href = "/painel.html";
+            } catch (erro) {
+                UI.erro(erro);
+            }
+
+        });
 
 
         // ---------- Cardápio ----------
 
         function cartaoPrato(prato) {
 
+            const emoji = App.emoji(prato.category, restaurante.category);
+
             const foto = `
-        <div class="panel-dish-photo">
-            ${prato.imageUrl
-                ? `<img src="${escapar(prato.imageUrl)}" alt="${escapar(prato.name)}" loading="lazy">`
-                : `<span class="photo-empty">🍽️</span>`}
-            ${prato.available ? "" : `<span class="badge-esgotado">ESGOTADO</span>`}
-        </div>`;
+<div class="dish-photo thumb">
+    ${prato.imageUrl
+        ? `<img src="${escapar(prato.imageUrl)}" alt="${escapar(prato.name)}" loading="lazy" data-emoji="${emoji}">`
+        : `<span class="photo-empty">${emoji}</span>`}
+    ${prato.available ? "" : `<span class="badge badge-off">Esgotado</span>`}
+</div>`;
 
             if (pratoEditando === prato.id) {
                 return `
-    <form class="panel-dish editando" onsubmit="salvarPrato(event, ${prato.id})">
-        ${foto}
-        <div class="panel-dish-edit">
-            <input name="name" value="${escapar(prato.name)}" placeholder="Nome" maxlength="80" required>
-            <input name="category" value="${escapar(prato.category)}" placeholder="Categoria" maxlength="80" required>
-            <input name="price" type="number" min="0" step="0.01" value="${prato.price}" placeholder="Preço" required>
-            <input name="description" value="${escapar(prato.description || "")}" placeholder="Descrição (opcional)" maxlength="200">
-        </div>
-        <div class="panel-dish-actions">
-            <button type="submit" class="btn-photo">Salvar</button>
-            <button type="button" class="btn-photo-remove" onclick="editarPrato(null)">Cancelar</button>
-        </div>
-    </form>`;
+<form class="panel dish-admin editando" onsubmit="salvarPrato(event, ${prato.id})">
+    ${foto}
+    <div class="dish-edit">
+        <input name="name" value="${escapar(prato.name)}" placeholder="Nome" maxlength="80" required>
+        <input name="category" value="${escapar(prato.category)}" placeholder="Categoria" maxlength="80" required>
+        <input name="price" type="number" min="0" step="0.01" value="${prato.price}" placeholder="Preço" required>
+        <input name="description" value="${escapar(prato.description || "")}" placeholder="Descrição (opcional)" maxlength="200">
+    </div>
+    <div class="dish-admin-actions">
+        <button type="submit" class="btn btn-neon btn-sm">Salvar</button>
+        <button type="button" class="btn btn-sm" onclick="editarPrato(null)">Cancelar</button>
+    </div>
+</form>`;
             }
 
             return `
-    <div class="panel-dish ${prato.available ? "" : "esgotado"}">
-        ${foto}
-
-        <div class="panel-dish-info">
-            <span>${escapar(prato.category)}</span>
-            <h3>${escapar(prato.name)}</h3>
-            <strong>${preco(prato.price)}</strong>
-            ${prato.description ? `<p>${escapar(prato.description)}</p>` : ""}
-        </div>
-
-        <div class="panel-dish-actions">
-            <button class="btn-photo-remove" onclick="editarPrato(${prato.id})">✏️ Editar</button>
-            <button class="${prato.available ? "btn-photo-remove" : "btn-photo"}" onclick="alternarDisponivel(${prato.id})">
-                ${prato.available ? "Marcar esgotado" : "Voltar a vender"}
-            </button>
-            <button class="btn-photo-remove" onclick="trocarFotoPrato(${prato.id}, this)">
-                📷 ${prato.imageUrl ? "Trocar foto" : "Enviar foto"}
-            </button>
-            ${prato.imageUrl
-                ? `<button class="btn-photo-remove" onclick="removerFotoPrato(${prato.id})">Remover foto</button>`
-                : ""}
-            <button class="btn-danger" onclick="excluirPrato(${prato.id})">Excluir</button>
-        </div>
-    </div>`;
+<article class="panel dish-admin ${prato.available ? "" : "esgotado"}">
+    ${foto}
+    <div class="dish-body">
+        <h3>${escapar(prato.name)}</h3>
+        <p>${escapar(prato.category)}</p>
+        <span class="preco">${preco(prato.price)}</span>
+    </div>
+    <div class="dish-admin-actions">
+        <button class="btn btn-sm" onclick="editarPrato(${prato.id})">Editar</button>
+        <button class="btn btn-sm ${prato.available ? "" : "btn-cyan"}" onclick="alternarDisponivel(${prato.id})">
+            ${prato.available ? "Esgotar" : "Voltar a vender"}
+        </button>
+        <button class="btn btn-sm" onclick="trocarFotoPrato(${prato.id}, this)">📷 Foto</button>
+        ${prato.imageUrl ? `<button class="btn btn-sm" onclick="removerFotoPrato(${prato.id})">Sem foto</button>` : ""}
+        <button class="btn btn-danger btn-sm" onclick="excluirPrato(${prato.id})">Excluir</button>
+    </div>
+</article>`;
 
         }
 
         function mostrarPratos() {
 
-            const container = document.getElementById("pratos");
+            document.getElementById("contPratos").textContent =
+                `${pratos.length} ${pratos.length === 1 ? "prato" : "pratos"}`;
 
-            container.innerHTML = pratos.length === 0
-                ? `<p class="panel-empty">Nenhum prato cadastrado ainda.</p>`
+            document.getElementById("pratos").innerHTML = pratos.length === 0
+                ? `<p class="empty">Nenhum prato ainda. Cadastre o primeiro ao lado.</p>`
                 : pratos.map(cartaoPrato).join("");
 
         }
@@ -438,7 +450,6 @@
             const form = evento.target;
 
             try {
-
                 const atualizado = await App.api(`/dishes/${id}`, {
                     method: "PUT",
                     autenticado: true,
@@ -452,6 +463,7 @@
 
                 pratoEditando = null;
                 atualizarPratoNaLista(atualizado);
+                UI.sucesso("Prato atualizado.");
 
             } catch (erro) {
                 UI.erro(erro);
@@ -464,13 +476,11 @@
             const prato = pratos.find(p => p.id === id);
 
             try {
-                atualizarPratoNaLista(
-                    await App.api(`/dishes/${id}`, {
-                        method: "PUT",
-                        autenticado: true,
-                        body: { available: !prato.available }
-                    })
-                );
+                atualizarPratoNaLista(await App.api(`/dishes/${id}`, {
+                    method: "PUT",
+                    autenticado: true,
+                    body: { available: !prato.available }
+                }));
             } catch (erro) {
                 UI.erro(erro);
             }
@@ -514,7 +524,7 @@
             } catch (erro) {
                 // Prato que já foi pedido não pode ser excluído: sugere esgotar
                 UI.erro(erro.status === 409
-                    ? `${erro.message} Dica: use "Marcar esgotado" para tirá-lo do cardápio.`
+                    ? `${erro.message} Use "Esgotar" para tirá-lo do cardápio.`
                     : erro.message);
             }
 
@@ -539,8 +549,7 @@
 
         }
 
-
-        // ---------- Novo prato ----------
+        // Novo prato
 
         const inputFotoPrato = document.getElementById("fotoPrato");
         const previaPrato = document.getElementById("previaPrato");
@@ -571,74 +580,71 @@
             textoFotoPrato.textContent = "📷 Foto do prato";
         }
 
-        document
-            .getElementById("formPrato")
-            .addEventListener("submit", async evento => {
+        document.getElementById("formPrato").addEventListener("submit", async evento => {
 
-                evento.preventDefault();
+            evento.preventDefault();
 
-                const botao = document.getElementById("btnAdicionarPrato");
-                const foto = inputFotoPrato.files[0];
+            const botao = document.getElementById("btnAdicionarPrato");
+            const foto = inputFotoPrato.files[0];
 
-                botao.disabled = true;
+            botao.disabled = true;
 
-                try {
+            try {
 
-                    let prato = await App.api(`/restaurants/${restauranteId}/dishes`, {
-                        method: "POST",
-                        autenticado: true,
-                        body: {
-                            name: document.getElementById("pratoNome").value,
-                            category: document.getElementById("pratoCategoria").value,
-                            price: document.getElementById("pratoPreco").value,
-                            description: document.getElementById("pratoDescricao").value
-                        }
-                    });
-
-                    // Prato criado: agora envia a foto, se houver
-                    if (foto) {
-                        try {
-                            prato = await Imagens.enviar(`/dishes/${prato.id}/image`, foto);
-                        } catch (erro) {
-                            UI.erro(`Prato cadastrado, mas a foto não foi enviada: ${erro.message}`);
-                        }
+                let prato = await App.api(`/restaurants/${restauranteId}/dishes`, {
+                    method: "POST",
+                    autenticado: true,
+                    body: {
+                        name: document.getElementById("pratoNome").value,
+                        category: document.getElementById("pratoCategoria").value,
+                        price: document.getElementById("pratoPreco").value,
+                        description: document.getElementById("pratoDescricao").value
                     }
+                });
 
-                    pratos.push(prato);
-                    mostrarPratos();
-
-                    evento.target.reset();
-                    limparFotoPrato();
-
-                } catch (erro) {
-                    UI.erro(erro);
-                } finally {
-                    botao.disabled = false;
+                if (foto) {
+                    try {
+                        prato = await Imagens.enviar(`/dishes/${prato.id}/image`, foto);
+                    } catch (erro) {
+                        UI.erro(`Prato cadastrado, mas a foto não foi enviada: ${erro.message}`);
+                    }
                 }
 
-            });
+                pratos.push(prato);
+                mostrarPratos();
+
+                evento.target.reset();
+                limparFotoPrato();
+                UI.sucesso(`"${prato.name}" adicionado.`);
+
+            } catch (erro) {
+                UI.erro(erro);
+            } finally {
+                botao.disabled = false;
+            }
+
+        });
 
 
-        // ---------- Pedidos ----------
+        // ---------- Pedidos (quadro) ----------
 
-        const STATUS = Object.keys(App.STATUS_TEXTO);
+        function ehHoje(data) {
+            return new Date(data).toDateString() === new Date().toDateString();
+        }
 
         async function carregarPedidos() {
 
             try {
                 pedidos = await App.api(`/restaurants/${restauranteId}/orders`, { autenticado: true });
             } catch (erro) {
-                document.getElementById("pedidos").innerHTML =
-                    `<p class="empty-state">${escapar(erro.message)}</p>`;
+                document.getElementById("kanban").innerHTML = `<p class="empty">${escapar(erro.message)}</p>`;
                 ultimoHtmlPedidos = "";
                 return;
             }
 
             // Pedidos que chegaram desde a última atualização
             if (pedidosVistos) {
-                pedidos
-                    .filter(p => !pedidosVistos.has(p.id))
-                    .forEach(p => pedidosNovos.add(p.id));
+                pedidos.filter(p => !pedidosVistos.has(p.id)).forEach(p => pedidosNovos.add(p.id));
             }
 
             pedidosVistos = new Set(pedidos.map(p => p.id));
@@ -647,127 +653,95 @@
 
         }
 
-        function mostrarFiltros() {
+        function cartaoKanban(pedido) {
 
-            const contagem = status => pedidos.filter(p => !status || p.status === status).length;
-
-            document.getElementById("filtrosPedidos").innerHTML =
-                ["", ...STATUS].map(status => `
-    <button
-        class="category-chip ${status === filtroStatus ? "ativo" : ""}"
-        onclick="filtrarPedidos('${status}')"
-    >
-        ${status ? App.statusTexto(status) : "Todos"} (${contagem(status)})
-    </button>`).join("");
-
-        }
-
-        function filtrarPedidos(status) {
-            filtroStatus = status;
-            mostrarPedidos();
-        }
-
-        function cartaoPedido(pedido) {
-
-            const finalizado = pedido.status === "ENTREGUE" || pedido.status === "CANCELADO";
-            const novo = pedidosNovos.has(pedido.id);
+            const proximo = PROXIMO[pedido.status];
 
             return `
-<div class="pedido-card ${novo ? "pedido-novo" : ""}" onclick="marcarVisto(${pedido.id})">
+<article class="panel kanban-card ${pedidosNovos.has(pedido.id) ? "novo" : ""}" onclick="marcarVisto(${pedido.id})">
+    <header>
+        <span class="crt">#${String(pedido.id).padStart(4, "0")}</span>
+        <small>${new Date(pedido.createdAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</small>
+    </header>
+    <strong>${pedido.user ? escapar(pedido.user.name) : "Cliente"}</strong>
+    <ul>${pedido.items.map(item => `<li>${item.quantity}× ${escapar(item.dish.name)}</li>`).join("")}</ul>
+    ${pedido.address ? `<span class="info">📍 ${escapar(pedido.address)}</span>` : ""}
+    ${pedido.note ? `<span class="info">📝 ${escapar(pedido.note)}</span>` : ""}
+    <span class="info">💳 ${App.pagamentoTexto(pedido.paymentMethod)}${pedido.changeFor ? `, troco para ${preco(pedido.changeFor)} (levar ${preco(pedido.changeFor - pedido.total)})` : ""}</span>
+    <span class="preco">${preco(pedido.total)}</span>
+    <div class="kanban-actions">
+        ${proximo ? `<button class="btn btn-neon btn-sm" onclick="event.stopPropagation(); mudarStatus(${pedido.id}, '${proximo[0]}')">${proximo[1]}</button>` : ""}
+        <button class="btn btn-danger btn-sm" onclick="event.stopPropagation(); cancelarPedido(${pedido.id})">Cancelar</button>
+    </div>
+</article>`;
 
-    <div class="panel-order-header">
+        }
 
+        function cartaoFinalizado(pedido) {
+            return `
+<article class="panel order">
+    <header class="order-head">
         <div>
-            <span class="panel-order-tag">
-                ${novo ? "🔔 NOVO • " : ""}PEDIDO • ${escapar(App.data(pedido.createdAt))}
-            </span>
-            <h2>#${pedido.id}${pedido.user ? ` · ${escapar(pedido.user.name)}` : ""}</h2>
+            <span class="crt">#${String(pedido.id).padStart(4, "0")}</span>
+            <h3>${pedido.user ? escapar(pedido.user.name) : "Cliente"}</h3>
+            <small>${escapar(App.data(pedido.createdAt))}</small>
         </div>
-
-        <strong class="panel-status ${pedido.status.toLowerCase()}">
-            ${App.statusTexto(pedido.status)}
-        </strong>
-
-    </div>
-
-    <div class="panel-order-products">
-
-        <span class="panel-order-section">PRODUTOS</span>
-
-        ${pedido.items.map(item => `
-            <div class="panel-product">
-
-                ${item.dish.imageUrl
-                    ? `<img class="panel-product-thumb" src="${escapar(item.dish.imageUrl)}" alt="" loading="lazy">`
-                    : ""}
-
-                <div class="panel-product-info">
-                    <h3>${escapar(item.dish.name)}</h3>
-                    <span>Quantidade: ${item.quantity}</span>
-                </div>
-
-                <strong>${preco(item.price * item.quantity)}</strong>
-
-            </div>
-        `).join("")}
-
-    </div>
-
-    <div class="order-details">
-        ${pedido.address ? `<span>📍 ${escapar(pedido.address)}</span>` : ""}
-        ${pedido.note ? `<span>📝 ${escapar(pedido.note)}</span>` : ""}
-        <span>💳 ${App.pagamentoTexto(pedido.paymentMethod)}${pedido.changeFor ? ` · levar troco para ${preco(pedido.changeFor)} (troco: ${preco(pedido.changeFor - pedido.total)})` : ""}</span>
-        ${pedido.deliveryFee > 0 ? `<span>🛵 Taxa de entrega ${preco(pedido.deliveryFee)}</span>` : ""}
-        ${pedido.review ? `<span>⭐ Avaliação do cliente: ${App.estrelas(pedido.review.rating)}${pedido.review.comment ? ` · "${escapar(pedido.review.comment)}"` : ""}</span>` : ""}
-    </div>
-
-    <div class="panel-order-total">
-        <span>Total do pedido</span>
-        <strong>${preco(pedido.total)}</strong>
-    </div>
-
-    ${finalizado ? "" : `
-    <div class="panel-status-control">
-
-        <label for="status-${pedido.id}">Alterar status</label>
-
-        <div class="panel-status-actions">
-
-            <select id="status-${pedido.id}" onclick="event.stopPropagation()">
-                ${STATUS.map(status => `
-                <option value="${status}" ${pedido.status === status ? "selected" : ""}>
-                    ${App.statusTexto(status)}
-                </option>`).join("")}
-            </select>
-
-            <button onclick="event.stopPropagation(); alterarStatus(${pedido.id})">
-                Atualizar status
-                <span>→</span>
-            </button>
-
+        <span class="status ${pedido.status.toLowerCase()}">${App.statusTexto(pedido.status)}</span>
+    </header>
+    <div class="order-body">
+        <ul class="order-items">
+            ${pedido.items.map(item => `<li><span class="qtd">${item.quantity}×</span><span>${escapar(item.dish.name)}</span><span class="preco">${preco(item.price * item.quantity)}</span></li>`).join("")}
+        </ul>
+        <div class="order-info">
+            <span>💳 ${App.pagamentoTexto(pedido.paymentMethod)}</span>
+            ${pedido.review ? `<span>⭐ <span class="stars">${App.estrelas(pedido.review.rating)}</span>${pedido.review.comment ? ` "${escapar(pedido.review.comment)}"` : ""}</span>` : ""}
+            <div class="order-total"><span>Total</span><span class="preco">${preco(pedido.total)}</span></div>
         </div>
-
-    </div>`}
-
-</div>`;
-
+    </div>
+</article>`;
         }
 
         function mostrarPedidos() {
 
-            mostrarFiltros();
+            const abertos = pedidos.filter(p => COLUNAS.includes(p.status));
+            const finalizados = pedidos.filter(p => !COLUNAS.includes(p.status));
+            const hoje = pedidos.filter(p => ehHoje(p.createdAt));
+            const faturamento = hoje.filter(p => p.status !== "CANCELADO").reduce((s, p) => s + p.total, 0);
+            const pendentes = pedidos.filter(p => p.status === "PENDENTE").length;
 
-            const lista = pedidos.filter(p => !filtroStatus || p.status === filtroStatus);
+            document.getElementById("kpiHoje").textContent = hoje.length;
+            document.getElementById("kpiPendentes").textContent = pendentes;
+            document.getElementById("kpiFaturamento").textContent = preco(faturamento);
+            document.getElementById("contPendentes").textContent = pendentes ? `[${pendentes}]` : "";
 
-            const html = lista.length === 0
-                ? `<p class="empty-state">Nenhum pedido ${filtroStatus ? `com status "${App.statusTexto(filtroStatus)}"` : "recebido ainda"}.</p>`
-                : lista.map(cartaoPedido).join("");
+            const html = COLUNAS.map(status => {
+                const lista = abertos.filter(p => p.status === status);
+                return `
+<div class="kanban-col">
+    <header>
+        <span class="status ${status.toLowerCase()}">${App.statusTexto(status)}</span>
+        <span class="crt">${String(lista.length).padStart(2, "0")}</span>
+    </header>
+    ${lista.length ? lista.map(cartaoKanban).join("") : `<p class="hint">Nenhum pedido aqui.</p>`}
+</div>`;
+            }).join("") + `
+<div class="kanban-col">
+    <header>
+        <span class="status entregue">Entregues hoje</span>
+        <span class="crt">${String(finalizados.filter(p => p.status === "ENTREGUE" && ehHoje(p.updatedAt)).length).padStart(2, "0")}</span>
+    </header>
+    <p class="hint">Os pedidos entregues e cancelados ficam na lista abaixo.</p>
+</div>`;
 
-            // Só redesenha se mudou: não apaga o status que você está escolhendo
+            // Só redesenha se mudou
             if (html !== ultimoHtmlPedidos) {
-                document.getElementById("pedidos").innerHTML = html;
+                document.getElementById("kanban").innerHTML = html;
                 ultimoHtmlPedidos = html;
             }
+
+            document.getElementById("finalizados").innerHTML = finalizados.length
+                ? finalizados.slice(0, 20).map(cartaoFinalizado).join("")
+                : `<p class="empty">Nenhum pedido finalizado ainda.</p>`;
 
             document.title = pedidosNovos.size
                 ? `(${pedidosNovos.size}) Novo pedido! - EasyFood`
@@ -781,24 +755,23 @@
             }
         }
 
-        async function alterarStatus(pedidoId) {
-
-            const novoStatus = document.getElementById(`status-${pedidoId}`).value;
+        async function mudarStatus(id, status) {
 
             try {
-
-                await App.api(`/orders/${pedidoId}/status`, {
-                    method: "PUT",
-                    autenticado: true,
-                    body: { status: novoStatus }
-                });
-
-                pedidosNovos.delete(pedidoId);
+                await App.api(`/orders/${id}/status`, { method: "PUT", autenticado: true, body: { status } });
+                pedidosNovos.delete(id);
                 await carregarPedidos();
-
             } catch (erro) {
                 UI.erro(erro);
             }
+
+        }
+
+        async function cancelarPedido(id) {
+
+            if (!(await UI.confirmar(`Cancelar o pedido #${id}? O cliente verá o pedido como cancelado.`, { confirmar: "Cancelar pedido", perigo: true }))) return;
+
+            await mudarStatus(id, "CANCELADO");
 
         }
 
