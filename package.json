@@ -8,7 +8,8 @@
     "start": "node server.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "seed": "node prisma/seed.js"
+    "seed": "node prisma/seed.js",
+    "test": "node tests/api.test.js"
   },
   "dependencies": {
     "@prisma/client": "^6.0.0",
@@ -16,7 +17,10 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.21.2",
-    "jsonwebtoken": "^9.0.3"
+    "jsonwebtoken": "^9.0.3",
+    "multer": "^2.5.0",
+    "nodemailer": "^7.0.13",
+    "sharp": "^0.34.5"
   },
   "devDependencies": {
     "prisma": "^6.0.0"

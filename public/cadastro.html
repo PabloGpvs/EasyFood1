@@ -28,6 +28,8 @@
                 Crie sua conta e comece a pedir pelo EasyFood.
             </p>
 
+            <p id="mensagem" class="auth-message erro" hidden></p>
+
             <form id="formCadastro">
 
                 <div class="auth-field">
@@ -37,6 +39,8 @@
                         type="text"
                         id="name"
                         placeholder="Digite seu nome"
+                        minlength="2"
+                        maxlength="80"
                         required
                     >
                 </div>
@@ -58,10 +62,25 @@
                     <input
                         type="password"
                         id="password"
-                        placeholder="Crie uma senha"
+                        placeholder="Crie uma senha (mínimo 6 caracteres)"
+                        minlength="6"
                         required
                     >
                 </div>
+
+                <fieldset class="account-type">
+                    <legend>Como você vai usar o EasyFood?</legend>
+
+                    <label>
+                        <input type="radio" name="role" value="CLIENTE" checked>
+                        <span>🍔 Quero pedir comida</span>
+                    </label>
+
+                    <label>
+                        <input type="radio" name="role" value="DONO">
+                        <span>🏪 Tenho um restaurante</span>
+                    </label>
+                </fieldset>
 
                 <button type="submit" class="auth-button">
                     Criar conta
@@ -79,41 +98,61 @@
 
     </main>
 
-</body>
+
+
+    <script src="/js/app.js"></script>
 
     <script>
+
+        const mensagem = document.getElementById("mensagem");
+        const destino = App.destinoSeguro(
+            new URLSearchParams(window.location.search).get("voltar")
+        );
 
         document.getElementById("formCadastro").addEventListener("submit", async function(event) {
 
             event.preventDefault();
 
-            const name = document.getElementById("name").value;
+            const botao = event.target.querySelector("button");
             const email = document.getElementById("email").value;
             const password = document.getElementById("password").value;
 
-            const resposta = await fetch("/users", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    name: name,
-                    email: email,
-                    password: password
-                })
-            });
+            botao.disabled = true;
+            mensagem.hidden = true;
 
-            const resultado = await resposta.json();
+            try {
 
-            if (resposta.ok) {
+                await App.api("/auth/register", {
+                    method: "POST",
+                    body: {
+                        name: document.getElementById("name").value,
+                        email,
+                        password,
+                        role: document.querySelector("input[name=role]:checked").value
+                    }
+                });
 
-                alert("Conta criada com sucesso!");
+                // Conta criada: já entra direto, sem precisar digitar de novo
+                const sessao = await App.api("/auth/login", {
+                    method: "POST",
+                    body: { email, password }
+                });
 
-                window.location.href = "/login.html";
+                App.salvarSessao(sessao.token, sessao.user);
 
-            } else {
+                // Dono vai direto para a página inicial cadastrar o restaurante
+                window.location.href = sessao.user.role === "DONO" && destino === "/"
+                    ? "/?cadastrar=1"
+                    : destino;
 
-                alert(resultado.error || "Erro ao criar conta.");
+            } catch (erro) {
+
+                mensagem.textContent = erro.message;
+                mensagem.hidden = false;
+
+            } finally {
+
+                botao.disabled = false;
 
             }
 
@@ -121,4 +160,6 @@
 
     </script>
 
-</body
+</body>
+
+</html>

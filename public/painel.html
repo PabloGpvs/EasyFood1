@@ -20,109 +20,672 @@
             <h1>Painel do Restaurante</h1>
 
             <p>
-                Acompanhe e gerencie os pedidos recebidos.
+                Gerencie os dados, o cardápio e os pedidos do seu restaurante.
             </p>
         </div>
 
-        <button
-            class="panel-back"
-            onclick="window.location.href='/'"
-        >
-            ← Início
-        </button>
+        <div class="panel-header-actions">
+
+            <select id="seletorRestaurante" class="panel-select" aria-label="Escolher restaurante" hidden></select>
+
+            <button
+                class="panel-back"
+                onclick="window.location.href='/'"
+            >
+                ← Início
+            </button>
+
+        </div>
 
     </header>
 
     <main>
 
-        <div class="panel-section-heading">
-            <span>PEDIDOS</span>
-            <h2>Pedidos recebidos</h2>
-            <p>Gerencie o status dos pedidos em andamento.</p>
-        </div>
-
-        <section id="pedidos">
-            Carregando pedidos...
+        <section id="semRestaurante" class="panel-box" hidden>
+            <p class="empty-state">
+                Você ainda não tem restaurante cadastrado.
+                <a href="/">Cadastre um na página inicial</a> para usar o painel.
+            </p>
         </section>
+
+        <div id="conteudo" hidden>
+
+            <!-- MEU RESTAURANTE -->
+
+            <div class="panel-section-heading">
+                <span>RESTAURANTE</span>
+                <h2>Dados e foto</h2>
+                <p>A foto aparece na página inicial e no topo do cardápio.</p>
+            </div>
+
+            <section class="panel-box restaurant-photo-box">
+
+                <div class="photo-frame" id="fotoRestaurante"></div>
+
+                <form id="formRestaurante" class="restaurant-edit">
+
+                    <p id="notaRestaurante" class="rating"></p>
+
+                    <div class="restaurant-edit-fields">
+                        <label>Nome
+                            <input id="restNome" type="text" placeholder="Nome do restaurante" minlength="2" maxlength="80" required>
+                        </label>
+                        <label>Categoria
+                            <input id="restCategoria" type="text" placeholder="Categoria" minlength="2" maxlength="80" required>
+                        </label>
+                        <label>Taxa de entrega (R$)
+                            <input id="restTaxa" type="number" min="0" max="1000" step="0.01" placeholder="0 = grátis">
+                        </label>
+                        <label>Pedido mínimo (R$)
+                            <input id="restMinimo" type="number" min="0" max="1000" step="0.01" placeholder="0 = sem mínimo">
+                        </label>
+                        <label>Abre às
+                            <input id="restAbre" type="time">
+                        </label>
+                        <label>Fecha às
+                            <input id="restFecha" type="time">
+                        </label>
+                    </div>
+
+                    <small class="form-hint">Deixe os horários vazios para ficar sempre aberto. Pode virar a noite (ex.: 18:00 às 02:00).</small>
+
+                    <div class="photo-actions">
+                        <button type="submit" class="btn-photo">Salvar dados</button>
+                        <button type="button" class="btn-photo-remove" id="btnFotoRestaurante">📷 Foto</button>
+                        <button type="button" class="btn-photo-remove" id="btnRemoverFotoRestaurante" hidden>Remover foto</button>
+                        <button type="button" class="btn-danger" id="btnExcluirRestaurante">Excluir restaurante</button>
+                    </div>
+
+                </form>
+
+            </section>
+
+
+            <!-- CARDÁPIO -->
+
+            <div class="panel-section-heading">
+                <span>CARDÁPIO</span>
+                <h2>Pratos</h2>
+                <p>Cadastre pratos, envie fotos, edite preços e marque o que esgotou.</p>
+            </div>
+
+            <section class="panel-box">
+
+                <form id="formPrato" class="dish-form">
+
+                    <label class="upload-field upload-square" for="fotoPrato">
+                        <img id="previaPrato" class="upload-preview" alt="Prévia da foto do prato" hidden>
+                        <span class="upload-text">
+                            <strong id="textoFotoPrato">📷 Foto do prato</strong>
+                            <small>JPEG, PNG ou WebP até 5 MB</small>
+                        </span>
+                        <input id="fotoPrato" type="file" accept="image/jpeg,image/png,image/webp" hidden>
+                    </label>
+
+                    <div class="dish-form-fields">
+                        <input id="pratoNome" type="text" placeholder="Nome do prato" maxlength="80" required>
+                        <input id="pratoCategoria" type="text" placeholder="Categoria (ex.: Pizza, Bebida)" maxlength="80" required>
+                        <input id="pratoPreco" type="number" placeholder="Preço (R$)" min="0" step="0.01" required>
+                        <input id="pratoDescricao" type="text" placeholder="Descrição (opcional)" maxlength="200">
+
+                        <button type="submit" id="btnAdicionarPrato">
+                            Adicionar prato
+                            <span>→</span>
+                        </button>
+                    </div>
+
+                </form>
+
+                <div id="pratos" class="panel-dishes">
+                    Carregando cardápio...
+                </div>
+
+            </section>
+
+
+            <!-- PEDIDOS -->
+
+            <div class="panel-section-heading">
+                <span>PEDIDOS</span>
+                <h2>Pedidos recebidos</h2>
+                <p>Atualiza na hora quando chega pedido novo. Pedidos novos aparecem destacados.</p>
+            </div>
+
+            <div id="filtrosPedidos" class="category-chips panel-filters"></div>
+
+            <section id="pedidos">
+                Carregando pedidos...
+            </section>
+
+        </div>
 
     </main>
 
-</body>
+    <script src="/js/app.js"></script>
+    <script src="/js/ui.js"></script>
+    <script src="/js/imagens.js"></script>
 
     <script>
 
-        const parametros = new URLSearchParams(window.location.search);
+        const { escapar, preco } = App;
 
-        const restauranteId = parametros.get("id");
+        let restauranteId = null;
+        let restaurante = null;
+        let pratos = [];
+        let pratoEditando = null;
 
-        async function carregarPedidos() {
+        let pedidos = [];
+        let filtroStatus = "";
+        let pedidosVistos = null;   // ids já vistos (null = ainda não carregou)
+        const pedidosNovos = new Set();
+        let ultimoHtmlPedidos = "";
+        const tituloOriginal = document.title;
 
-            const token = localStorage.getItem("token");
 
-            if (!token) {
+        // ---------- Início: escolhe o restaurante ----------
 
-                alert("Você precisa estar logado.");
+        async function iniciar() {
 
-                window.location.href = "/login.html";
-
+            if (!App.exigirLogin()) {
                 return;
             }
 
-            if (!restauranteId) {
+            const meus = await App.api("/my-restaurants", { autenticado: true });
 
-                document.getElementById("pedidos").innerHTML =
-                    "<p>Restaurante não informado.</p>";
-
+            if (meus.length === 0) {
+                document.getElementById("semRestaurante").hidden = false;
                 return;
             }
+
+            const pedido = Number(new URLSearchParams(window.location.search).get("id"));
+            restauranteId = meus.some(r => r.id === pedido) ? pedido : meus[0].id;
+
+            const seletor = document.getElementById("seletorRestaurante");
+
+            if (meus.length > 1) {
+                seletor.innerHTML = meus.map(r => `
+                    <option value="${r.id}" ${r.id === restauranteId ? "selected" : ""}>
+                        ${escapar(r.name)}
+                    </option>`).join("");
+                seletor.hidden = false;
+            }
+
+            seletor.addEventListener("change", () => {
+                window.location.href = `/painel.html?id=${seletor.value}`;
+            });
+
+            history.replaceState(null, "", `/painel.html?id=${restauranteId}`);
+
+            document.getElementById("conteudo").hidden = false;
+
+            await carregarRestaurante();
+            await carregarPedidos();
+
+            // Tempo real: o servidor avisa na hora quando chega pedido novo
+            App.ouvirPedidos(({ type, order }) => {
+                if (order.restaurantId !== restauranteId) return;
+
+                if (type === "criado") {
+                    UI.sucesso(`🔔 Novo pedido #${order.id}!`);
+                }
+
+                carregarPedidos();
+            });
+
+            // Garantia, caso a conexão em tempo real caia
+            setInterval(carregarPedidos, 30000);
+
+        }
+
+
+        // ---------- Restaurante ----------
+
+        async function carregarRestaurante() {
+
+            restaurante = await App.api(`/restaurants/${restauranteId}`);
+            pratos = restaurante.dishes || [];
+
+            mostrarRestaurante();
+            mostrarPratos();
+
+        }
+
+        function mostrarRestaurante() {
+
+            document.getElementById("fotoRestaurante").innerHTML = restaurante.imageUrl
+                ? `<img src="${escapar(restaurante.imageUrl)}" alt="Foto do restaurante">`
+                : `<span class="photo-empty">🍔</span>`;
+
+            document.getElementById("restNome").value = restaurante.name;
+            document.getElementById("restCategoria").value = restaurante.category;
+            document.getElementById("restTaxa").value = restaurante.deliveryFee || "";
+            document.getElementById("restMinimo").value = restaurante.minOrder || "";
+            document.getElementById("restAbre").value = restaurante.opensAt || "";
+            document.getElementById("restFecha").value = restaurante.closesAt || "";
+
+            document.getElementById("notaRestaurante").textContent =
+                `${restaurante.isOpen ? "🟢 Aberto agora" : "🔴 Fechado agora"} · ${restaurante.ratingCount ? `${App.notaResumo(restaurante)} avaliações` : "Ainda sem avaliações"}`;
+
+            document.getElementById("btnFotoRestaurante").textContent =
+                restaurante.imageUrl ? "📷 Trocar foto" : "📷 Enviar foto";
+
+            document.getElementById("btnRemoverFotoRestaurante").hidden =
+                !restaurante.imageUrl;
+
+        }
+
+        document
+            .getElementById("formRestaurante")
+            .addEventListener("submit", async evento => {
+
+                evento.preventDefault();
+
+                try {
+
+                    const atualizado = await App.api(`/restaurants/${restauranteId}`, {
+                        method: "PUT",
+                        autenticado: true,
+                        body: {
+                            name: document.getElementById("restNome").value,
+                            category: document.getElementById("restCategoria").value,
+                            deliveryFee: document.getElementById("restTaxa").value || 0,
+                            minOrder: document.getElementById("restMinimo").value || 0,
+                            opensAt: document.getElementById("restAbre").value,
+                            closesAt: document.getElementById("restFecha").value
+                        }
+                    });
+
+                    restaurante = { ...restaurante, ...atualizado };
+                    mostrarRestaurante();
+                    UI.sucesso("Dados do restaurante salvos!");
+
+                } catch (erro) {
+                    UI.erro(erro);
+                }
+
+            });
+
+        document
+            .getElementById("btnFotoRestaurante")
+            .addEventListener("click", async evento => {
+
+                const arquivo = await Imagens.escolherArquivo();
+
+                if (!arquivo) return;
+
+                await comCarregando(evento.target, async () => {
+                    const atualizado = await Imagens.enviar(`/restaurants/${restauranteId}/image`, arquivo);
+                    restaurante = { ...restaurante, ...atualizado };
+                    mostrarRestaurante();
+                });
+
+            });
+
+        document
+            .getElementById("btnRemoverFotoRestaurante")
+            .addEventListener("click", async () => {
+
+                if (!(await UI.confirmar("Remover a foto do restaurante?", { confirmar: "Remover", perigo: true }))) return;
+
+                try {
+                    const atualizado = await Imagens.remover(`/restaurants/${restauranteId}/image`);
+                    restaurante = { ...restaurante, ...atualizado };
+                    mostrarRestaurante();
+                } catch (erro) {
+                    UI.erro(erro);
+                }
+
+            });
+
+        document
+            .getElementById("btnExcluirRestaurante")
+            .addEventListener("click", async () => {
+
+                if (!(await UI.confirmar(`Excluir o restaurante "${restaurante.name}"? Isso não pode ser desfeito.`, { confirmar: "Excluir", perigo: true }))) return;
+
+                try {
+                    await App.api(`/restaurants/${restauranteId}`, { method: "DELETE", autenticado: true });
+                    UI.avisoNaProximaPagina("Restaurante excluído.");
+                    window.location.href = "/painel.html";
+                } catch (erro) {
+                    UI.erro(erro);
+                }
+
+            });
+
+
+        // ---------- Cardápio ----------
+
+        function cartaoPrato(prato) {
+
+            const foto = `
+        <div class="panel-dish-photo">
+            ${prato.imageUrl
+                ? `<img src="${escapar(prato.imageUrl)}" alt="${escapar(prato.name)}" loading="lazy">`
+                : `<span class="photo-empty">🍽️</span>`}
+            ${prato.available ? "" : `<span class="badge-esgotado">ESGOTADO</span>`}
+        </div>`;
+
+            if (pratoEditando === prato.id) {
+                return `
+    <form class="panel-dish editando" onsubmit="salvarPrato(event, ${prato.id})">
+        ${foto}
+        <div class="panel-dish-edit">
+            <input name="name" value="${escapar(prato.name)}" placeholder="Nome" maxlength="80" required>
+            <input name="category" value="${escapar(prato.category)}" placeholder="Categoria" maxlength="80" required>
+            <input name="price" type="number" min="0" step="0.01" value="${prato.price}" placeholder="Preço" required>
+            <input name="description" value="${escapar(prato.description || "")}" placeholder="Descrição (opcional)" maxlength="200">
+        </div>
+        <div class="panel-dish-actions">
+            <button type="submit" class="btn-photo">Salvar</button>
+            <button type="button" class="btn-photo-remove" onclick="editarPrato(null)">Cancelar</button>
+        </div>
+    </form>`;
+            }
+
+            return `
+    <div class="panel-dish ${prato.available ? "" : "esgotado"}">
+        ${foto}
+
+        <div class="panel-dish-info">
+            <span>${escapar(prato.category)}</span>
+            <h3>${escapar(prato.name)}</h3>
+            <strong>${preco(prato.price)}</strong>
+            ${prato.description ? `<p>${escapar(prato.description)}</p>` : ""}
+        </div>
+
+        <div class="panel-dish-actions">
+            <button class="btn-photo-remove" onclick="editarPrato(${prato.id})">✏️ Editar</button>
+            <button class="${prato.available ? "btn-photo-remove" : "btn-photo"}" onclick="alternarDisponivel(${prato.id})">
+                ${prato.available ? "Marcar esgotado" : "Voltar a vender"}
+            </button>
+            <button class="btn-photo-remove" onclick="trocarFotoPrato(${prato.id}, this)">
+                📷 ${prato.imageUrl ? "Trocar foto" : "Enviar foto"}
+            </button>
+            ${prato.imageUrl
+                ? `<button class="btn-photo-remove" onclick="removerFotoPrato(${prato.id})">Remover foto</button>`
+                : ""}
+            <button class="btn-danger" onclick="excluirPrato(${prato.id})">Excluir</button>
+        </div>
+    </div>`;
+
+        }
+
+        function mostrarPratos() {
+
+            const container = document.getElementById("pratos");
+
+            container.innerHTML = pratos.length === 0
+                ? `<p class="panel-empty">Nenhum prato cadastrado ainda.</p>`
+                : pratos.map(cartaoPrato).join("");
+
+        }
+
+        function atualizarPratoNaLista(atualizado) {
+            pratos = pratos.map(p => p.id === atualizado.id ? atualizado : p);
+            mostrarPratos();
+        }
+
+        function editarPrato(id) {
+            pratoEditando = id;
+            mostrarPratos();
+        }
+
+        async function salvarPrato(evento, id) {
+
+            evento.preventDefault();
+
+            const form = evento.target;
 
             try {
 
-                const resposta = await fetch(
-                    `/restaurants/${restauranteId}/orders`,
-                    {
-                        headers: {
-                            "Authorization": `Bearer ${token}`
+                const atualizado = await App.api(`/dishes/${id}`, {
+                    method: "PUT",
+                    autenticado: true,
+                    body: {
+                        name: form.elements["name"].value,
+                        category: form.elements["category"].value,
+                        price: form.elements["price"].value,
+                        description: form.elements["description"].value
+                    }
+                });
+
+                pratoEditando = null;
+                atualizarPratoNaLista(atualizado);
+
+            } catch (erro) {
+                UI.erro(erro);
+            }
+
+        }
+
+        async function alternarDisponivel(id) {
+
+            const prato = pratos.find(p => p.id === id);
+
+            try {
+                atualizarPratoNaLista(
+                    await App.api(`/dishes/${id}`, {
+                        method: "PUT",
+                        autenticado: true,
+                        body: { available: !prato.available }
+                    })
+                );
+            } catch (erro) {
+                UI.erro(erro);
+            }
+
+        }
+
+        async function trocarFotoPrato(id, botao) {
+
+            const arquivo = await Imagens.escolherArquivo();
+
+            if (!arquivo) return;
+
+            await comCarregando(botao, async () => {
+                atualizarPratoNaLista(await Imagens.enviar(`/dishes/${id}/image`, arquivo));
+            });
+
+        }
+
+        async function removerFotoPrato(id) {
+
+            if (!(await UI.confirmar("Remover a foto deste prato?", { confirmar: "Remover", perigo: true }))) return;
+
+            try {
+                atualizarPratoNaLista(await Imagens.remover(`/dishes/${id}/image`));
+            } catch (erro) {
+                UI.erro(erro);
+            }
+
+        }
+
+        async function excluirPrato(id) {
+
+            const prato = pratos.find(p => p.id === id);
+
+            if (!(await UI.confirmar(`Excluir "${prato.name}" do cardápio?`, { confirmar: "Excluir", perigo: true }))) return;
+
+            try {
+                await App.api(`/dishes/${id}`, { method: "DELETE", autenticado: true });
+                pratos = pratos.filter(p => p.id !== id);
+                mostrarPratos();
+            } catch (erro) {
+                // Prato que já foi pedido não pode ser excluído: sugere esgotar
+                UI.erro(erro.status === 409
+                    ? `${erro.message} Dica: use "Marcar esgotado" para tirá-lo do cardápio.`
+                    : erro.message);
+            }
+
+        }
+
+        // Desativa o botão enquanto a imagem é enviada
+        async function comCarregando(botao, acao) {
+
+            const textoOriginal = botao.textContent;
+
+            botao.disabled = true;
+            botao.textContent = "Enviando...";
+
+            try {
+                await acao();
+            } catch (erro) {
+                UI.erro(erro);
+            } finally {
+                botao.disabled = false;
+                if (botao.isConnected) botao.textContent = textoOriginal;
+            }
+
+        }
+
+
+        // ---------- Novo prato ----------
+
+        const inputFotoPrato = document.getElementById("fotoPrato");
+        const previaPrato = document.getElementById("previaPrato");
+        const textoFotoPrato = document.getElementById("textoFotoPrato");
+
+        inputFotoPrato.addEventListener("change", () => {
+
+            const arquivo = inputFotoPrato.files[0];
+
+            if (!arquivo) return limparFotoPrato();
+
+            const erro = Imagens.validar(arquivo);
+
+            if (erro) {
+                UI.erro(erro);
+                return limparFotoPrato();
+            }
+
+            Imagens.mostrarPrevia(arquivo, previaPrato);
+            textoFotoPrato.textContent = "Trocar foto";
+
+        });
+
+        function limparFotoPrato() {
+            inputFotoPrato.value = "";
+            previaPrato.hidden = true;
+            previaPrato.removeAttribute("src");
+            textoFotoPrato.textContent = "📷 Foto do prato";
+        }
+
+        document
+            .getElementById("formPrato")
+            .addEventListener("submit", async evento => {
+
+                evento.preventDefault();
+
+                const botao = document.getElementById("btnAdicionarPrato");
+                const foto = inputFotoPrato.files[0];
+
+                botao.disabled = true;
+
+                try {
+
+                    let prato = await App.api(`/restaurants/${restauranteId}/dishes`, {
+                        method: "POST",
+                        autenticado: true,
+                        body: {
+                            name: document.getElementById("pratoNome").value,
+                            category: document.getElementById("pratoCategoria").value,
+                            price: document.getElementById("pratoPreco").value,
+                            description: document.getElementById("pratoDescricao").value
+                        }
+                    });
+
+                    // Prato criado: agora envia a foto, se houver
+                    if (foto) {
+                        try {
+                            prato = await Imagens.enviar(`/dishes/${prato.id}/image`, foto);
+                        } catch (erro) {
+                            UI.erro(`Prato cadastrado, mas a foto não foi enviada: ${erro.message}`);
                         }
                     }
-                );
 
-                if (!resposta.ok) {
+                    pratos.push(prato);
+                    mostrarPratos();
 
-                    throw new Error("Erro ao buscar pedidos.");
+                    evento.target.reset();
+                    limparFotoPrato();
 
+                } catch (erro) {
+                    UI.erro(erro);
+                } finally {
+                    botao.disabled = false;
                 }
 
-                const pedidos = await resposta.json();
+            });
 
-                const container = document.getElementById("pedidos");
 
-                container.innerHTML = "";
+        // ---------- Pedidos ----------
 
-                if (pedidos.length === 0) {
+        const STATUS = Object.keys(App.STATUS_TEXTO);
 
-                    container.innerHTML =
-                        "<p>Nenhum pedido recebido.</p>";
+        async function carregarPedidos() {
 
-                    return;
-                }
+            try {
+                pedidos = await App.api(`/restaurants/${restauranteId}/orders`, { autenticado: true });
+            } catch (erro) {
+                document.getElementById("pedidos").innerHTML =
+                    `<p class="empty-state">${escapar(erro.message)}</p>`;
+                ultimoHtmlPedidos = "";
+                return;
+            }
 
-                pedidos.forEach(pedido => {
+            // Pedidos que chegaram desde a última atualização
+            if (pedidosVistos) {
+                pedidos
+                    .filter(p => !pedidosVistos.has(p.id))
+                    .forEach(p => pedidosNovos.add(p.id));
+            }
 
-                    const div = document.createElement("div");
+            pedidosVistos = new Set(pedidos.map(p => p.id));
 
-                    div.className = "pedido-card";
+            mostrarPedidos();
 
-                    div.innerHTML = `
+        }
+
+        function mostrarFiltros() {
+
+            const contagem = status => pedidos.filter(p => !status || p.status === status).length;
+
+            document.getElementById("filtrosPedidos").innerHTML =
+                ["", ...STATUS].map(status => `
+    <button
+        class="category-chip ${status === filtroStatus ? "ativo" : ""}"
+        onclick="filtrarPedidos('${status}')"
+    >
+        ${status ? App.statusTexto(status) : "Todos"} (${contagem(status)})
+    </button>`).join("");
+
+        }
+
+        function filtrarPedidos(status) {
+            filtroStatus = status;
+            mostrarPedidos();
+        }
+
+        function cartaoPedido(pedido) {
+
+            const finalizado = pedido.status === "ENTREGUE" || pedido.status === "CANCELADO";
+            const novo = pedidosNovos.has(pedido.id);
+
+            return `
+<div class="pedido-card ${novo ? "pedido-novo" : ""}" onclick="marcarVisto(${pedido.id})">
+
     <div class="panel-order-header">
 
         <div>
-            <span class="panel-order-tag">PEDIDO</span>
-            <h2>#${pedido.id}</h2>
+            <span class="panel-order-tag">
+                ${novo ? "🔔 NOVO • " : ""}PEDIDO • ${escapar(App.data(pedido.createdAt))}
+            </span>
+            <h2>#${pedido.id}${pedido.user ? ` · ${escapar(pedido.user.name)}` : ""}</h2>
         </div>
 
         <strong class="panel-status ${pedido.status.toLowerCase()}">
-            ${statusTexto}
+            ${App.statusTexto(pedido.status)}
         </strong>
 
     </div>
@@ -134,151 +697,113 @@
         ${pedido.items.map(item => `
             <div class="panel-product">
 
-                <div>
-                    <h3>${item.product.name}</h3>
+                ${item.dish.imageUrl
+                    ? `<img class="panel-product-thumb" src="${escapar(item.dish.imageUrl)}" alt="" loading="lazy">`
+                    : ""}
+
+                <div class="panel-product-info">
+                    <h3>${escapar(item.dish.name)}</h3>
                     <span>Quantidade: ${item.quantity}</span>
                 </div>
 
-                <strong>
-                    R$ ${item.price.toFixed(2)}
-                </strong>
+                <strong>${preco(item.price * item.quantity)}</strong>
 
             </div>
         `).join("")}
 
     </div>
 
-    <div class="panel-order-total">
-        <span>Total do pedido</span>
-
-        <strong>
-            R$ ${pedido.total.toFixed(2)}
-        </strong>
+    <div class="order-details">
+        ${pedido.address ? `<span>📍 ${escapar(pedido.address)}</span>` : ""}
+        ${pedido.note ? `<span>📝 ${escapar(pedido.note)}</span>` : ""}
+        <span>💳 ${App.pagamentoTexto(pedido.paymentMethod)}${pedido.changeFor ? ` · levar troco para ${preco(pedido.changeFor)} (troco: ${preco(pedido.changeFor - pedido.total)})` : ""}</span>
+        ${pedido.deliveryFee > 0 ? `<span>🛵 Taxa de entrega ${preco(pedido.deliveryFee)}</span>` : ""}
+        ${pedido.review ? `<span>⭐ Avaliação do cliente: ${App.estrelas(pedido.review.rating)}${pedido.review.comment ? ` · "${escapar(pedido.review.comment)}"` : ""}</span>` : ""}
     </div>
 
+    <div class="panel-order-total">
+        <span>Total do pedido</span>
+        <strong>${preco(pedido.total)}</strong>
+    </div>
+
+    ${finalizado ? "" : `
     <div class="panel-status-control">
 
-        <label for="status-${pedido.id}">
-            Alterar status
-        </label>
+        <label for="status-${pedido.id}">Alterar status</label>
 
         <div class="panel-status-actions">
 
-            <select id="status-${pedido.id}">
-
-                <option value="PENDENTE"
-                    ${pedido.status === "PENDENTE" ? "selected" : ""}>
-                    Pendente
-                </option>
-
-                <option value="PREPARANDO"
-                    ${pedido.status === "PREPARANDO" ? "selected" : ""}>
-                    Preparando
-                </option>
-
-                <option value="SAIU_PARA_ENTREGA"
-                    ${pedido.status === "SAIU_PARA_ENTREGA" ? "selected" : ""}>
-                    Saiu para entrega
-                </option>
-
-                <option value="ENTREGUE"
-                    ${pedido.status === "ENTREGUE" ? "selected" : ""}>
-                    Entregue
-                </option>
-
-                <option value="CANCELADO"
-                    ${pedido.status === "CANCELADO" ? "selected" : ""}>
-                    Cancelado
-                </option>
-
+            <select id="status-${pedido.id}" onclick="event.stopPropagation()">
+                ${STATUS.map(status => `
+                <option value="${status}" ${pedido.status === status ? "selected" : ""}>
+                    ${App.statusTexto(status)}
+                </option>`).join("")}
             </select>
 
-            <button onclick="alterarStatus(${pedido.id})">
+            <button onclick="event.stopPropagation(); alterarStatus(${pedido.id})">
                 Atualizar status
                 <span>→</span>
             </button>
 
         </div>
 
-    </div>
-`;
+    </div>`}
 
-                    container.appendChild(div);
+</div>`;
 
-                });
+        }
 
-            } catch (error) {
+        function mostrarPedidos() {
 
-                console.error(error);
+            mostrarFiltros();
 
-                document.getElementById("pedidos").innerHTML =
-                    "<p>Não foi possível carregar os pedidos.</p>";
+            const lista = pedidos.filter(p => !filtroStatus || p.status === filtroStatus);
 
+            const html = lista.length === 0
+                ? `<p class="empty-state">Nenhum pedido ${filtroStatus ? `com status "${App.statusTexto(filtroStatus)}"` : "recebido ainda"}.</p>`
+                : lista.map(cartaoPedido).join("");
+
+            // Só redesenha se mudou: não apaga o status que você está escolhendo
+            if (html !== ultimoHtmlPedidos) {
+                document.getElementById("pedidos").innerHTML = html;
+                ultimoHtmlPedidos = html;
             }
 
+            document.title = pedidosNovos.size
+                ? `(${pedidosNovos.size}) Novo pedido! - EasyFood`
+                : tituloOriginal;
+
+        }
+
+        function marcarVisto(id) {
+            if (pedidosNovos.delete(id)) {
+                mostrarPedidos();
+            }
         }
 
         async function alterarStatus(pedidoId) {
 
-            const token = localStorage.getItem("token");
-
-            const select = document.getElementById(
-                `status-${pedidoId}`
-            );
-
-            const novoStatus = select.value;
+            const novoStatus = document.getElementById(`status-${pedidoId}`).value;
 
             try {
 
-                const resposta = await fetch(
-                    `/orders/${pedidoId}/status`,
-                    {
-                        method: "PUT",
+                await App.api(`/orders/${pedidoId}/status`, {
+                    method: "PUT",
+                    autenticado: true,
+                    body: { status: novoStatus }
+                });
 
-                        headers: {
-                            "Content-Type": "application/json",
-                            "Authorization": `Bearer ${token}`
-                        },
+                pedidosNovos.delete(pedidoId);
+                await carregarPedidos();
 
-                        body: JSON.stringify({
-                            status: novoStatus
-                        })
-                    }
-                );
-
-                const texto = await resposta.text();
-
-                const resultado = texto
-                ? JSON.parse(texto)
-                : {};
-
-                if (!resposta.ok) {
-
-                    alert(
-                        resultado.error ||
-                        "Erro ao atualizar status."
-                    );
-
-                    return;
-                }
-
-                alert("Status atualizado com sucesso!");
-
-                carregarPedidos();
-
-            } catch (error) {
-
-                console.error(error);
-
-                alert("Erro ao atualizar status.");
-
+            } catch (erro) {
+                UI.erro(erro);
             }
 
         }
 
-        carregarPedidos();
 
-        setInterval(carregarPedidos, 5000);
+        iniciar().catch(erro => UI.erro(erro));
 
     </script>
 

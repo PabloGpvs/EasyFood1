@@ -1,4 +1,3 @@
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,33 +12,53 @@ model User {
   name      String
   email     String   @unique
   password  String
+  imageUrl  String?
+  // CLIENTE faz pedidos; DONO também pode cadastrar restaurantes
+  role      String   @default("CLIENTE")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Recuperação de senha: guarda só o hash do token enviado por e-mail
+  resetTokenHash    String?
+  resetTokenExpires DateTime?
 
   orders      Order[]
   restaurants Restaurant[]
+  addresses   Address[]
+  reviews     Review[]
 }
 
 model Restaurant {
-  id        Int      @id @default(autoincrement())
-  name      String
-  category  String
-  imageUrl  String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          Int      @id @default(autoincrement())
+  name        String
+  category    String
+  imageUrl    String?
+  deliveryFee Float    @default(0)
+  minOrder    Float    @default(0)
+  // Horário de funcionamento "HH:MM" (vazio = sempre aberto)
+  opensAt     String?
+  closesAt    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   ownerId Int
   owner   User @relation(fields: [ownerId], references: [id])
 
-  products Product[]
+  dishes  Dish[]
+  orders  Order[]
+  reviews Review[]
 }
 
-model Product {
+// O modelo se chama Dish (prato) no código, mas continua usando a tabela
+// "Product" que já existe no banco. Assim nenhum dado é perdido.
+model Dish {
   id          Int      @id @default(autoincrement())
   name        String
   description String?
   price       Float
   category    String
+  imageUrl    String?
+  available   Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -47,19 +66,32 @@ model Product {
   restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
 
   orderItems OrderItem[]
+
+  @@map("Product")
 }
 
 model Order {
-  id        Int      @id @default(autoincrement())
-  status    String   @default("PENDENTE")
-  total     Float
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            Int      @id @default(autoincrement())
+  status        String   @default("PENDENTE")
+  subtotal      Float    @default(0)
+  deliveryFee   Float    @default(0)
+  total         Float
+  address       String?
+  note          String?
+  // PIX, CARTAO ou DINHEIRO (pago na entrega)
+  paymentMethod String   @default("PIX")
+  changeFor     Float?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   userId Int?
   user   User? @relation(fields: [userId], references: [id])
 
-  items OrderItem[]
+  restaurantId Int?
+  restaurant   Restaurant? @relation(fields: [restaurantId], references: [id])
+
+  items  OrderItem[]
+  review Review?
 }
 
 model OrderItem {
@@ -67,9 +99,37 @@ model OrderItem {
   quantity Int
   price    Float
 
-  orderId   Int
-  productId Int
+  orderId Int
+  dishId  Int @map("productId")
 
-  order   Order   @relation(fields: [orderId], references: [id])
-  product Product @relation(fields: [productId], references: [id])
+  order Order @relation(fields: [orderId], references: [id])
+  dish  Dish  @relation(fields: [dishId], references: [id])
+}
+
+// Endereços salvos do usuário, para escolher no checkout
+model Address {
+  id        Int      @id @default(autoincrement())
+  label     String
+  street    String
+  createdAt DateTime @default(now())
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Avaliação feita pelo cliente depois que o pedido foi entregue (uma por pedido)
+model Review {
+  id        Int      @id @default(autoincrement())
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  restaurantId Int
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  orderId Int   @unique
+  order   Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
 }

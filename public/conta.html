@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Minha conta - EasyFood</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <header class="panel-header">
+
+        <div>
+            <span class="panel-tag">EASYFOOD • CONTA</span>
+
+            <h1>Minha conta</h1>
+
+            <p>Seus dados, senha, endereços e tipo de conta.</p>
+        </div>
+
+        <button class="panel-back" onclick="window.location.href='/'">
+            ← Início
+        </button>
+
+    </header>
+
+    <main id="conteudo" hidden>
+
+        <!-- PERFIL -->
+
+        <div class="panel-section-heading">
+            <span>PERFIL</span>
+            <h2>Seus dados</h2>
+        </div>
+
+        <section class="panel-box restaurant-photo-box">
+
+            <div class="photo-frame avatar-frame" id="foto"></div>
+
+            <form id="formPerfil" class="restaurant-edit">
+
+                <div class="restaurant-edit-fields">
+                    <input id="nome" type="text" placeholder="Seu nome" minlength="2" maxlength="80" required>
+                    <input id="email" type="email" disabled title="O e-mail não pode ser alterado">
+                </div>
+
+                <div class="photo-actions">
+                    <button type="submit" class="btn-photo">Salvar nome</button>
+                    <button type="button" class="btn-photo-remove" id="btnFoto">📷 Foto</button>
+                    <button type="button" class="btn-photo-remove" id="btnRemoverFoto" hidden>Remover foto</button>
+                </div>
+
+            </form>
+
+        </section>
+
+
+        <!-- SENHA -->
+
+        <div class="panel-section-heading">
+            <span>SEGURANÇA</span>
+            <h2>Trocar senha</h2>
+        </div>
+
+        <section class="panel-box">
+
+            <form id="formSenha" class="account-form">
+                <input id="senhaAtual" type="password" placeholder="Senha atual" autocomplete="current-password" required>
+                <input id="senhaNova" type="password" placeholder="Nova senha (mínimo 6)" minlength="6" autocomplete="new-password" required>
+                <input id="senhaNova2" type="password" placeholder="Repita a nova senha" minlength="6" autocomplete="new-password" required>
+                <button type="submit" class="btn-photo">Trocar senha</button>
+            </form>
+
+        </section>
+
+
+        <!-- ENDEREÇOS -->
+
+        <div class="panel-section-heading">
+            <span>ENTREGA</span>
+            <h2>Endereços salvos</h2>
+            <p>Escolha um deles na hora de finalizar o pedido.</p>
+        </div>
+
+        <section class="panel-box">
+
+            <div id="enderecos" class="address-list"></div>
+
+            <form id="formEndereco" class="account-form">
+                <input id="apelido" type="text" placeholder="Nome (ex.: Casa, Trabalho)" maxlength="30" required>
+                <input id="rua" type="text" placeholder="Rua, número, bairro e complemento" maxlength="200" required>
+                <button type="submit" class="btn-photo">Adicionar endereço</button>
+            </form>
+
+        </section>
+
+
+        <!-- TIPO DE CONTA -->
+
+        <div class="panel-section-heading">
+            <span>RESTAURANTE</span>
+            <h2>Venda no EasyFood</h2>
+        </div>
+
+        <section class="panel-box" id="tipoConta"></section>
+
+    </main>
+
+    <script src="/js/app.js"></script>
+    <script src="/js/ui.js"></script>
+    <script src="/js/imagens.js"></script>
+
+    <script>
+
+        const { escapar } = App;
+        let usuario = null;
+
+
+        // ---------- Perfil ----------
+
+        function mostrarPerfil() {
+
+            document.getElementById("foto").innerHTML = usuario.imageUrl
+                ? `<img src="${escapar(usuario.imageUrl)}" alt="Sua foto">`
+                : `<span class="photo-empty">${escapar(usuario.name.charAt(0).toUpperCase())}</span>`;
+
+            document.getElementById("nome").value = usuario.name;
+            document.getElementById("email").value = usuario.email;
+
+            document.getElementById("btnFoto").textContent =
+                usuario.imageUrl ? "📷 Trocar foto" : "📷 Enviar foto";
+
+            document.getElementById("btnRemoverFoto").hidden = !usuario.imageUrl;
+
+            // Mantém o nome salvo no navegador atualizado
+            App.salvarSessao(App.token(), usuario);
+
+            mostrarTipoConta();
+
+        }
+
+        document.getElementById("formPerfil").addEventListener("submit", async evento => {
+
+            evento.preventDefault();
+
+            try {
+                usuario = await App.api("/auth/me", {
+                    method: "PATCH",
+                    autenticado: true,
+                    body: { name: document.getElementById("nome").value }
+                });
+                mostrarPerfil();
+                UI.sucesso("Nome atualizado!");
+            } catch (erro) {
+                UI.erro(erro);
+            }
+
+        });
+
+        document.getElementById("btnFoto").addEventListener("click", async evento => {
+
+            const arquivo = await Imagens.escolherArquivo();
+
+            if (!arquivo) return;
+
+            const botao = evento.target;
+            botao.disabled = true;
+
+            try {
+                usuario = await Imagens.enviar("/auth/me/image", arquivo);
+                mostrarPerfil();
+                UI.sucesso("Foto atualizada!");
+            } catch (erro) {
+                UI.erro(erro);
+            } finally {
+                botao.disabled = false;
+            }
+
+        });
+
+        document.getElementById("btnRemoverFoto").addEventListener("click", async () => {
+
+            if (!(await UI.confirmar("Remover sua foto de perfil?", { confirmar: "Remover", perigo: true }))) return;
+
+            try {
+                usuario = await Imagens.remover("/auth/me/image");
+                mostrarPerfil();
+            } catch (erro) {
+                UI.erro(erro);
+            }
+
+        });
+
+
+        // ---------- Senha ----------
+
+        document.getElementById("formSenha").addEventListener("submit", async evento => {
+
+            evento.preventDefault();
+
+            const nova = document.getElementById("senhaNova").value;
+
+            if (nova !== document.getElementById("senhaNova2").value) {
+                return UI.erro("As senhas novas não são iguais.");
+            }
+
+            try {
+                await App.api("/auth/me/password", {
+                    method: "PUT",
+                    autenticado: true,
+                    body: {
+                        currentPassword: document.getElementById("senhaAtual").value,
+                        newPassword: nova
+                    }
+                });
+                evento.target.reset();
+                UI.sucesso("Senha alterada!");
+            } catch (erro) {
+                UI.erro(erro);
+            }
+
+        });
+
+
+        // ---------- Endereços ----------
+
+        async function carregarEnderecos() {
+
+            const enderecos = await App.api("/auth/me/addresses", { autenticado: true });
+
+            document.getElementById("enderecos").innerHTML = enderecos.length === 0
+                ? `<p class="panel-empty">Nenhum endereço salvo.</p>`
+                : enderecos.map(endereco => `
+    <div class="address-item">
+        <div>
+            <strong>${escapar(endereco.label)}</strong>
+            <span>${escapar(endereco.street)}</span>
+        </div>
+        <button class="btn-danger" onclick="removerEndereco(${endereco.id})">Remover</button>
+    </div>`).join("");
+
+        }
+
+        async function removerEndereco(id) {
+
+            if (!(await UI.confirmar("Remover este endereço?", { confirmar: "Remover", perigo: true }))) return;
+
+            try {
+                await App.api(`/auth/me/addresses/${id}`, { method: "DELETE", autenticado: true });
+                await carregarEnderecos();
+            } catch (erro) {
+                UI.erro(erro);
+            }
+
+        }
+
+        document.getElementById("formEndereco").addEventListener("submit", async evento => {
+
+            evento.preventDefault();
+
+            try {
+                await App.api("/auth/me/addresses", {
+                    method: "POST",
+                    autenticado: true,
+                    body: {
+                        label: document.getElementById("apelido").value,
+                        street: document.getElementById("rua").value
+                    }
+                });
+                evento.target.reset();
+                await carregarEnderecos();
+                UI.sucesso("Endereço salvo!");
+            } catch (erro) {
+                UI.erro(erro);
+            }
+
+        });
+
+
+        // ---------- Tipo de conta ----------
+
+        function mostrarTipoConta() {
+
+            const box = document.getElementById("tipoConta");
+
+            if (usuario.role === "DONO") {
+                box.innerHTML = `
+    <p class="account-role">🏪 Sua conta é de <strong>dono de restaurante</strong>. Você pode pedir comida e também vender.</p>
+    <div class="photo-actions">
+        <button class="btn-photo" onclick="window.location.href='/painel.html'">Abrir painel</button>
+        <button class="btn-photo-remove" onclick="window.location.href='/?cadastrar=1'">+ Cadastrar restaurante</button>
+    </div>`;
+                return;
+            }
+
+            box.innerHTML = `
+    <p class="account-role">Tem um restaurante? Ative o modo restaurante para cadastrar o seu e receber pedidos. Você continua podendo pedir comida.</p>
+    <button class="btn-photo" onclick="virarDono()">🏪 Quero vender no EasyFood</button>`;
+
+        }
+
+        async function virarDono() {
+
+            if (!(await UI.confirmar("Ativar o modo restaurante na sua conta?", { confirmar: "Ativar" }))) return;
+
+            try {
+                usuario = await App.api("/auth/me/become-owner", { method: "POST", autenticado: true });
+                mostrarPerfil();
+                UI.avisoNaProximaPagina("Modo restaurante ativado! Cadastre seu restaurante.");
+                window.location.href = "/?cadastrar=1";
+            } catch (erro) {
+                UI.erro(erro);
+            }
+
+        }
+
+
+        async function iniciar() {
+
+            if (!App.exigirLogin()) return;
+
+            usuario = await App.api("/auth/me", { autenticado: true });
+
+            document.getElementById("conteudo").hidden = false;
+
+            mostrarPerfil();
+            await carregarEnderecos();
+
+        }
+
+        iniciar().catch(erro => UI.erro(erro));
+
+    </script>
+
+</body>
+
+</html>

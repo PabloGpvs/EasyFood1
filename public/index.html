@@ -673,22 +673,48 @@
 
                 <div class="top-actions">
 
-    <button id="btnCadastrar" class="btn-primary">
+    <!-- Visível só para quem NÃO está logado -->
+    <button class="btn-secondary" data-sessao="deslogado" onclick="App.irParaLogin()" hidden>
+        Entrar
+    </button>
+
+    <button class="btn-primary" data-sessao="deslogado" onclick="window.location.href='/cadastro.html'" hidden>
+        Criar conta
+    </button>
+
+    <!-- Visível só para quem está logado -->
+    <button id="btnCadastrar" class="btn-primary" hidden>
         + Cadastrar restaurante
     </button>
 
     <button
         class="btn-secondary"
+        data-sessao="logado"
         onclick="window.location.href='/pedidos.html'"
+        hidden
     >
         Meus pedidos
     </button>
 
-    <button id="btnPainel" class="btn-secondary">
+    <button id="btnPainel" class="btn-secondary" onclick="window.location.href='/painel.html'" hidden>
         Painel
     </button>
 
-    <button id="btnSair" class="btn-logout" onclick="sair()">
+    <div class="avatar-wrap" id="perfil" hidden>
+        <button id="btnPerfil" class="btn-avatar" title="Foto de perfil" aria-haspopup="true">
+            <img id="avatarImg" alt="Sua foto de perfil" hidden>
+            <span id="avatarInicial"></span>
+        </button>
+
+        <div id="menuPerfil" class="avatar-menu" hidden>
+            <strong id="perfilNome"></strong>
+            <button onclick="window.location.href='/conta.html'">👤 Minha conta</button>
+            <button id="btnTrocarFoto">📷 Trocar foto</button>
+            <button id="btnRemoverFoto">Remover foto</button>
+        </div>
+    </div>
+
+    <button id="btnSair" class="btn-logout" data-sessao="logado" onclick="App.sair()" hidden>
         Sair
     </button>
 
@@ -773,11 +799,14 @@
         placeholder="Categoria"
     >
 
-    <input
-        id="imageUrl"
-        type="url"
-        placeholder="URL da logo ou imagem do restaurante"
-    >
+    <label class="upload-field" for="fotoRestaurante">
+        <img id="previaRestaurante" class="upload-preview" alt="Prévia da foto do restaurante" hidden>
+        <span class="upload-text">
+            <strong id="textoFotoRestaurante">📷 Escolher foto do restaurante (opcional)</strong>
+            <small>JPEG, PNG ou WebP até 5 MB</small>
+        </span>
+        <input id="fotoRestaurante" type="file" accept="image/jpeg,image/png,image/webp" hidden>
+    </label>
 </div>
 
     <button id="btnSalvar">
@@ -809,6 +838,19 @@
 
             </div>
 
+            <div class="restaurant-filters">
+
+                <input
+                    id="busca"
+                    type="search"
+                    placeholder="🔎 Buscar por nome ou categoria..."
+                    autocomplete="off"
+                >
+
+                <div id="categorias" class="category-chips"></div>
+
+            </div>
+
             <div id="restaurants">
                 Carregando restaurantes...
             </div>
@@ -818,40 +860,67 @@
     </div>
 
 
+    <script src="/js/app.js"></script>
+    <script src="/js/ui.js"></script>
+    <script src="/js/imagens.js"></script>
+
     <script>
 
+        const { escapar } = App;
+
+        // ---------- Lista, busca e filtro de restaurantes ----------
+
+        let categoriaAtual = "";
+        let buscaTimer;
+
         async function carregarRestaurantes() {
-
-            const resposta =
-                await fetch("/restaurants");
-
-            const restaurantes =
-                await resposta.json();
 
             const container =
                 document.getElementById("restaurants");
 
-            container.innerHTML = "";
+            const busca =
+                document.getElementById("busca").value.trim();
 
-            restaurantes.forEach(restaurante => {
+            const params = new URLSearchParams();
 
-                const div =
-                    document.createElement("div");
+            if (busca) params.set("search", busca);
+            if (categoriaAtual) params.set("category", categoriaAtual);
 
-                div.innerHTML = `
-    <div class="restaurant-card-content" onclick="abrirRestaurante(${restaurante.id})">
+            try {
+
+                const restaurantes =
+                    await App.api(`/restaurants?${params}`);
+
+                if (restaurantes.length === 0) {
+
+                    container.innerHTML = `
+    <p class="empty-state">
+        Nenhum restaurante encontrado${busca ? ` para "${escapar(busca)}"` : ""}.
+    </p>`;
+
+                    return;
+                }
+
+                container.innerHTML = restaurantes.map(restaurante => `
+    <div>
+    <div class="restaurant-card-content ${restaurante.isOpen ? "" : "fechado"}" onclick="abrirRestaurante(${restaurante.id})">
 
     <div class="restaurant-icon">
     ${
         restaurante.imageUrl
-            ? `<img src="${restaurante.imageUrl}" alt="${restaurante.name}">`
+            ? `<img src="${escapar(restaurante.imageUrl)}" alt="${escapar(restaurante.name)}" loading="lazy">`
             : "🍔"
     }
 </div>
 
     <div class="restaurant-info">
-        <h3>${restaurante.name}</h3>
-        <p>${restaurante.category}</p>
+        <h3>${escapar(restaurante.name)}</h3>
+        <p>${escapar(restaurante.category)} · <span class="rating">${App.notaResumo(restaurante)}</span></p>
+        <p class="restaurant-meta">
+            ${restaurante.isOpen ? "" : `<span class="badge-fechado">Fechado</span>`}
+            ${restaurante.deliveryFee > 0 ? `Entrega ${App.preco(restaurante.deliveryFee)}` : "Entrega grátis"}
+            ${restaurante.minOrder > 0 ? ` · Mínimo ${App.preco(restaurante.minOrder)}` : ""}
+        </p>
     </div>
 
     <div class="restaurant-open">
@@ -860,22 +929,65 @@
     </div>
 
 </div>
-
-    <div class="restaurant-actions">
-        <button onclick="event.stopPropagation(); editarRestaurante(${restaurante.id})">
-            Editar
-        </button>
-
-        <button onclick="event.stopPropagation(); excluirRestaurante(${restaurante.id})">
-            Excluir
-        </button>
     </div>
-`;
+`).join("");
 
-                container.appendChild(div);
+            } catch (erro) {
+
+                container.innerHTML =
+                    `<p class="empty-state">${escapar(erro.message)}</p>`;
+
+            }
+        }
+
+        async function carregarCategorias() {
+
+            try {
+
+                const categorias =
+                    await App.api("/restaurants/categories");
+
+                const chips = ["", ...categorias].map(categoria => `
+    <button
+        class="category-chip ${categoria === categoriaAtual ? "ativo" : ""}"
+        data-categoria="${escapar(categoria)}"
+    >
+        ${categoria ? escapar(categoria) : "Todas"}
+    </button>`).join("");
+
+                document.getElementById("categorias").innerHTML = chips;
+
+            } catch {
+                // sem categorias, a busca continua funcionando
+            }
+
+        }
+
+        document
+            .getElementById("categorias")
+            .addEventListener("click", evento => {
+
+                const chip = evento.target.closest(".category-chip");
+
+                if (!chip) return;
+
+                categoriaAtual = chip.dataset.categoria;
+
+                document
+                    .querySelectorAll(".category-chip")
+                    .forEach(c => c.classList.toggle("ativo", c === chip));
+
+                carregarRestaurantes();
 
             });
-        }
+
+        // Espera a pessoa parar de digitar antes de buscar
+        document
+            .getElementById("busca")
+            .addEventListener("input", () => {
+                clearTimeout(buscaTimer);
+                buscaTimer = setTimeout(carregarRestaurantes, 300);
+            });
 
 
         document
@@ -906,184 +1018,71 @@
             .getElementById("btnSalvar")
             .addEventListener("click", async () => {
 
-                const nome =
-                    document.getElementById("nome").value;
-
-                const categoria =
-                    document.getElementById("categoria").value;
-
-                const imageUrl =
-                    document.getElementById("imageUrl").value;    
-
-                const token =
-                    localStorage.getItem("token");
-
-                if (!token) {
-
-                    alert("Você precisa estar logado.");
-
-                    window.location.href =
-                        "/login.html";
-
+                if (!App.exigirLogin()) {
                     return;
                 }
 
+                const botao =
+                    document.getElementById("btnSalvar");
 
-                const resposta =
-                    await fetch("/restaurants", {
+                const foto =
+                    document.getElementById("fotoRestaurante").files[0];
 
-                        method: "POST",
+                botao.disabled = true;
 
-                        headers: {
+                try {
 
-                            "Content-Type":
-                                "application/json",
+                    const restaurante =
+                        await App.api("/restaurants", {
+                            method: "POST",
+                            autenticado: true,
+                            body: {
+                                name: document.getElementById("nome").value,
+                                category: document.getElementById("categoria").value
+                            }
+                        });
 
-                            "Authorization":
-                                `Bearer ${token}`
+                    let mensagem =
+                        "Restaurante cadastrado! Agora monte o cardápio no painel.";
 
-                        },
+                    // A foto vai depois do cadastro, na rota de upload
+                    if (foto) {
 
-                        body: JSON.stringify({
-                        name: nome,
-                        category: categoria,
-                        imageUrl: imageUrl
-                        })
+                        try {
 
-                    });
+                            await Imagens.enviar(
+                                `/restaurants/${restaurante.id}/image`,
+                                foto
+                            );
 
+                        } catch (erro) {
 
-                if (resposta.ok) {
+                            mensagem +=
+                                `\n\nA foto não foi enviada: ${erro.message}`;
 
-                    alert(
-                        "Restaurante cadastrado com sucesso!"
-                    );
+                        }
 
-                    document.getElementById("nome").value =
-                        "";
+                    }
 
-                    document.getElementById("categoria").value =
-                        "";
+                    UI.avisoNaProximaPagina(mensagem);
 
-                    document.getElementById("formulario")
-                        .style.display = "none";
+                    window.location.href =
+                        `/painel.html?id=${restaurante.id}`;
 
-                    carregarRestaurantes();
+                } catch (erro) {
 
-                } else {
+                    UI.erro(erro);
 
-                    const erro =
-                        await resposta.json();
+                } finally {
 
-                    alert(
-                        erro.error ||
-                        "Erro ao cadastrar restaurante."
-                    );
+                    botao.disabled = false;
 
                 }
 
             });
 
 
-        async function editarRestaurante(id) {
-
-            const nome =
-                prompt("Novo nome do restaurante:");
-
-            if (nome === null) {
-                return;
-            }
-
-            const categoria =
-                prompt("Nova categoria:");
-
-            if (categoria === null) {
-                return;
-            }
-
-
-            const resposta =
-                await fetch(`/restaurants/${id}`, {
-
-                    method: "PUT",
-
-                    headers: {
-
-                        "Content-Type":
-                            "application/json"
-
-                    },
-
-                    body: JSON.stringify({
-
-                        name: nome,
-
-                        category: categoria
-
-                    })
-
-                });
-
-
-            if (resposta.ok) {
-
-                alert(
-                    "Restaurante atualizado com sucesso!"
-                );
-
-                carregarRestaurantes();
-
-            } else {
-
-                alert(
-                    "Erro ao atualizar restaurante."
-                );
-
-            }
-
-        }
-
-
-        async function excluirRestaurante(id) {
-
-            const confirmar =
-                confirm(
-                    "Tem certeza que deseja excluir este restaurante?"
-                );
-
-            if (!confirmar) {
-                return;
-            }
-
-
-            const resposta =
-                await fetch(`/restaurants/${id}`, {
-
-                    method: "DELETE"
-
-                });
-
-
-            if (resposta.ok) {
-
-                alert(
-                    "Restaurante excluído com sucesso!"
-                );
-
-                carregarRestaurantes();
-
-            } else {
-
-                alert(
-                    "Erro ao excluir restaurante."
-                );
-
-            }
-
-        }
-
-
-        async function abrirRestaurante(id) {
+        function abrirRestaurante(id) {
 
             window.location.href =
                 `/restaurant.html?id=${id}`;
@@ -1091,97 +1090,209 @@
         }
 
 
-        async function abrirPainel() {
+        // ---------- Foto do restaurante no formulário ----------
 
-            const token =
-                localStorage.getItem("token");
+        const inputFotoRestaurante =
+            document.getElementById("fotoRestaurante");
 
-            if (!token) {
+        const previaRestaurante =
+            document.getElementById("previaRestaurante");
 
-                alert(
-                    "Você precisa estar logado."
-                );
+        const textoFotoRestaurante =
+            document.getElementById("textoFotoRestaurante");
 
-                window.location.href =
-                    "/login.html";
+        inputFotoRestaurante.addEventListener("change", () => {
 
-                return;
+            const arquivo = inputFotoRestaurante.files[0];
 
+            if (!arquivo) {
+                return limparFotoRestaurante();
             }
 
+            const erro = Imagens.validar(arquivo);
+
+            if (erro) {
+                UI.erro(erro);
+                return limparFotoRestaurante();
+            }
+
+            Imagens.mostrarPrevia(arquivo, previaRestaurante);
+
+            textoFotoRestaurante.textContent =
+                `📷 ${arquivo.name} (clique para trocar)`;
+
+        });
+
+        function limparFotoRestaurante() {
+
+            inputFotoRestaurante.value = "";
+
+            previaRestaurante.hidden = true;
+
+            previaRestaurante.removeAttribute("src");
+
+            textoFotoRestaurante.textContent =
+                "📷 Escolher foto do restaurante (opcional)";
+
+        }
+
+
+        // ---------- Foto de perfil ----------
+
+        const perfil = document.getElementById("perfil");
+        const menuPerfil = document.getElementById("menuPerfil");
+        let usuarioLogado = null;
+
+        function mostrarAvatar(usuario) {
+
+            usuarioLogado = usuario;
+
+            const img = document.getElementById("avatarImg");
+            const inicial = document.getElementById("avatarInicial");
+
+            document.getElementById("perfilNome").textContent =
+                usuario.name;
+
+            if (usuario.imageUrl) {
+                img.src = usuario.imageUrl;
+                img.hidden = false;
+                inicial.hidden = true;
+            } else {
+                img.hidden = true;
+                img.removeAttribute("src");
+                inicial.hidden = false;
+                inicial.textContent =
+                    (usuario.name || "?").trim().charAt(0).toUpperCase();
+            }
+
+            document.getElementById("btnRemoverFoto").hidden =
+                !usuario.imageUrl;
+
+            perfil.hidden = false;
+
+        }
+
+        // Mostra os botões certos para quem está ou não logado
+        function mostrarMenu() {
+
+            const logado = App.logado();
+
+            document
+                .querySelectorAll("[data-sessao]")
+                .forEach(el => {
+                    el.hidden = el.dataset.sessao !== (logado ? "logado" : "deslogado");
+                });
+
+        }
+
+        async function carregarPerfil() {
+
+            if (!App.logado()) {
+                return;
+            }
 
             try {
 
-                const resposta =
-                    await fetch("/my-restaurant", {
+                mostrarAvatar(
+                    await App.api("/auth/me", { autenticado: true, seExpirar: "limpar" })
+                );
 
-                        headers: {
+                // "Painel" só aparece para quem tem restaurante
+                // Cadastrar restaurante só para contas de dono
+                document.getElementById("btnCadastrar").hidden =
+                    usuarioLogado.role !== "DONO";
 
-                            "Authorization":
-                                `Bearer ${token}`
+                if (usuarioLogado.role === "DONO") {
 
-                        }
+                    const meus =
+                        await App.api("/my-restaurants", { autenticado: true });
 
-                    });
+                    document.getElementById("btnPainel").hidden =
+                        meus.length === 0;
 
-
-                const dados =
-                    await resposta.json();
-
-
-                if (!resposta.ok) {
-
-                    alert(
-                        dados.error ||
-                        "Você não possui um restaurante."
-                    );
-
-                    return;
+                    // Vindo do cadastro ou de "Minha conta": já abre o formulário
+                    if (new URLSearchParams(window.location.search).get("cadastrar")) {
+                        const formulario = document.getElementById("formulario");
+                        formulario.style.display = "block";
+                        formulario.scrollIntoView({ behavior: "smooth", block: "center" });
+                    }
 
                 }
 
-
-                window.location.href =
-                    `/painel.html?id=${dados.id}`;
-
-            } catch (error) {
-
-                console.error(error);
-
-                alert(
-                    "Erro ao buscar seu restaurante."
-                );
-
+            } catch {
+                // token expirado: a sessão foi limpa, mostra o menu de visitante
+                mostrarMenu();
             }
 
         }
 
+        document
+            .getElementById("btnPerfil")
+            .addEventListener("click", (evento) => {
+                evento.stopPropagation();
+                menuPerfil.hidden = !menuPerfil.hidden;
+            });
+
+        document.addEventListener("click", (evento) => {
+            if (!perfil.contains(evento.target)) {
+                menuPerfil.hidden = true;
+            }
+        });
 
         document
-            .getElementById("btnPainel")
-            .addEventListener(
-                "click",
-                abrirPainel
-            );
+            .getElementById("btnTrocarFoto")
+            .addEventListener("click", async () => {
+
+                menuPerfil.hidden = true;
+
+                const arquivo = await Imagens.escolherArquivo();
+
+                if (!arquivo) {
+                    return;
+                }
+
+                perfil.classList.add("enviando");
+
+                try {
+                    mostrarAvatar(
+                        await Imagens.enviar("/auth/me/image", arquivo)
+                    );
+                } catch (erro) {
+                    UI.erro(erro);
+                } finally {
+                    perfil.classList.remove("enviando");
+                }
+
+            });
+
+        document
+            .getElementById("btnRemoverFoto")
+            .addEventListener("click", async () => {
+
+                menuPerfil.hidden = true;
+
+                if (!(await UI.confirmar("Remover sua foto de perfil?", { confirmar: "Remover", perigo: true }))) {
+                    return;
+                }
+
+                try {
+                    mostrarAvatar(
+                        await Imagens.remover("/auth/me/image")
+                    );
+                } catch (erro) {
+                    UI.erro(erro);
+                }
+
+            });
 
 
-        function sair() {
+        mostrarMenu();
 
-            localStorage.removeItem("token");
-
-            localStorage.removeItem("usuario");
-
-            alert(
-                "Você saiu da sua conta."
-            );
-
-            window.location.href =
-                "/login.html";
-
-        }
-
+        carregarCategorias();
 
         carregarRestaurantes();
+
+        carregarPerfil();
 
     </script>
 

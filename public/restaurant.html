@@ -11,7 +11,7 @@
 
     <div class="restaurant-header">
 
-    <div class="restaurant-header-icon">
+    <div class="restaurant-header-icon" id="fotoRestaurante">
         🍔
     </div>
 
@@ -23,9 +23,16 @@
         </h1>
 
         <p id="categoriaRestaurante"></p>
+        <p id="infoRestaurante" class="restaurant-meta"></p>
     </div>
 
+    <button class="panel-back header-back" onclick="window.location.href='/'">
+        ← Restaurantes
+    </button>
+
 </div>
+
+<p id="avisoFechado" class="closed-banner" hidden></p>
 
 <div class="menu-heading">
     <span>MENU</span>
@@ -36,19 +43,64 @@
     <div id="produtos">
         Carregando produtos...
     </div>
+
     <div class="cart-heading">
     <span>SEU PEDIDO</span>
     <h2>Meu pedido</h2>
-    <p>Revise os itens antes de finalizar.</p>
+    <p>Revise os itens antes de finalizar. O carrinho fica salvo mesmo se você sair da página.</p>
 </div>
 
 <div id="carrinho">
     Nenhum produto adicionado.
 </div>
 
-<div class="cart-total">
-    <span>Total do pedido</span>
-    <strong id="total">R$ 0,00</strong>
+<div class="checkout-fields">
+
+    <label for="enderecosSalvos" id="rotuloSalvos" hidden>Endereços salvos</label>
+    <select id="enderecosSalvos" hidden></select>
+
+    <label for="endereco">Endereço de entrega</label>
+    <input
+        id="endereco"
+        type="text"
+        maxlength="200"
+        placeholder="Rua, número, bairro e complemento"
+        autocomplete="street-address"
+    >
+
+    <label for="observacao">Observação (opcional)</label>
+    <input
+        id="observacao"
+        type="text"
+        maxlength="200"
+        placeholder="Ex.: sem cebola, interfone 12, deixar na portaria..."
+    >
+
+    <label class="checkbox-line" id="linhaSalvarEndereco" hidden>
+        <input type="checkbox" id="salvarEndereco">
+        Salvar este endereço na minha conta
+    </label>
+
+    <span class="checkout-label">Forma de pagamento (na entrega)</span>
+
+    <div class="payment-options">
+        <label><input type="radio" name="pagamento" value="PIX" checked> Pix</label>
+        <label><input type="radio" name="pagamento" value="CARTAO"> Cartão</label>
+        <label><input type="radio" name="pagamento" value="DINHEIRO"> Dinheiro</label>
+    </div>
+
+    <div id="campoTroco" hidden>
+        <label for="troco">Troco para quanto? (opcional)</label>
+        <input id="troco" type="number" min="0" step="0.01" placeholder="Ex.: 100">
+    </div>
+
+</div>
+
+<div class="cart-total cart-summary">
+    <div><span>Subtotal</span><span id="subtotal">R$ 0,00</span></div>
+    <div><span>Taxa de entrega</span><span id="taxa">R$ 0,00</span></div>
+    <div class="cart-summary-total"><span>Total do pedido</span><strong id="total">R$ 0,00</strong></div>
+    <p id="avisoMinimo" class="min-warning" hidden></p>
 </div>
 
 <button id="btnFinalizar" onclick="finalizarPedido()">
@@ -56,193 +108,482 @@
     <span>→</span>
 </button>
 
+<div class="menu-heading">
+    <span>AVALIAÇÕES</span>
+    <h2 id="tituloAvaliacoes">O que dizem os clientes</h2>
+    <p>Avaliações de quem já recebeu um pedido.</p>
+</div>
+
+<div id="avaliacoes" class="reviews-list">
+    Carregando avaliações...
+</div>
+
+    <script src="/js/app.js"></script>
+    <script src="/js/ui.js"></script>
+    <script src="/js/imagens.js"></script>
+
     <script>
 
-        const parametros = new URLSearchParams(window.location.search);
-        const id = parametros.get("id");
+        const { escapar, preco } = App;
+
+        const restauranteId = Number(
+            new URLSearchParams(window.location.search).get("id")
+        );
+
+        // O carrinho fica salvo por restaurante, no navegador
+        const CHAVE_CARRINHO = `easyfood:carrinho:${restauranteId}`;
+        const CHAVE_ENDERECO = "easyfood:endereco";
+
+        let cardapio = [];
+        let restaurante = null;
+        let carrinho = lerCarrinho();
+
+
+        // ---------- Cardápio ----------
 
         async function carregarRestaurante() {
-            const resposta = await fetch(`/restaurants/${id}`);
-            const restaurante = await resposta.json();
-
-            document.getElementById("nomeRestaurante").textContent =
-                restaurante.name;
-
-            document.getElementById("categoriaRestaurante").textContent =
-                restaurante.category;
 
             const produtos = document.getElementById("produtos");
 
-            produtos.innerHTML = "";
+            try {
 
-            restaurante.products.forEach(produto => {
-                const div = document.createElement("div");
+                restaurante =
+                    await App.api(`/restaurants/${restauranteId}`);
 
-                div.innerHTML = `
-    <div class="product-card">
+                document.title = `${restaurante.name} - EasyFood`;
 
-        <div class="product-info">
-            <span class="product-category">PRODUTO</span>
+                document.getElementById("nomeRestaurante").textContent =
+                    restaurante.name;
 
-            <h3>${produto.name}</h3>
+                document.getElementById("categoriaRestaurante").textContent =
+                    restaurante.category;
 
-            <p>${produto.description || "Uma ótima opção para o seu pedido."}</p>
+                if (restaurante.imageUrl) {
+                    const foto = document.createElement("img");
+                    foto.src = restaurante.imageUrl;
+                    foto.alt = restaurante.name;
+                    document.getElementById("fotoRestaurante").replaceChildren(foto);
+                }
 
-            <strong>R$ ${produto.price.toFixed(2)}</strong>
-        </div>
+                mostrarInfo();
 
-        <button
-            class="product-add"
-            onclick="adicionarAoCarrinho(${produto.id}, '${produto.name}', ${produto.price})"
-        >
-            + Adicionar
-        </button>
+                cardapio = restaurante.dishes;
 
-    </div>
-`;
+                sincronizarCarrinho();
+                mostrarCardapio();
+                atualizarCarrinho();
 
-                produtos.appendChild(div);
-            });
+            } catch (erro) {
+
+                document.getElementById("nomeRestaurante").textContent =
+                    "Restaurante não encontrado";
+
+                produtos.innerHTML =
+                    `<p class="empty-state">${escapar(erro.message)}</p>`;
+
+            }
+
         }
 
-        let carrinho = [];
+        function mostrarInfo() {
 
-function adicionarAoCarrinho(id, nome, preco) {
-    const produtoExistente = carrinho.find(produto => produto.id === id);
+            const partes = [
+                App.notaResumo(restaurante),
+                restaurante.deliveryFee > 0 ? `Entrega ${preco(restaurante.deliveryFee)}` : "Entrega grátis"
+            ];
 
-    if (produtoExistente) {
-        produtoExistente.quantidade++;
-    } else {
-        carrinho.push({
-            id: id,
-            nome: nome,
-            preco: preco,
-            quantidade: 1
-        });
-    }
+            if (restaurante.minOrder > 0) {
+                partes.push(`Pedido mínimo ${preco(restaurante.minOrder)}`);
+            }
 
-    atualizarCarrinho();
-}
+            if (restaurante.opensAt) {
+                partes.push(`Funciona das ${restaurante.opensAt} às ${restaurante.closesAt}`);
+            }
 
-function alterarQuantidade(id, valor) {
-    const produto = carrinho.find(produto => produto.id === id);
+            document.getElementById("infoRestaurante").textContent = partes.join(" · ");
 
-    if (!produto) {
-        return;
-    }
+            const aviso = document.getElementById("avisoFechado");
+            aviso.hidden = restaurante.isOpen;
+            aviso.textContent = `🔒 Fechado agora. Abre às ${restaurante.opensAt}. Você pode montar o carrinho e pedir quando abrir.`;
 
-    produto.quantidade += valor;
+        }
 
-    if (produto.quantidade <= 0) {
-        carrinho = carrinho.filter(produto => produto.id !== id);
-    }
+        function mostrarCardapio() {
 
-    atualizarCarrinho();
-}
-function removerDoCarrinho(id) {
-    carrinho = carrinho.filter(produto => produto.id !== id);
+            const produtos = document.getElementById("produtos");
 
-    atualizarCarrinho();
-}
+            if (cardapio.length === 0) {
+                produtos.innerHTML =
+                    `<p class="empty-state">Este restaurante ainda não cadastrou pratos.</p>`;
+                return;
+            }
 
-function atualizarCarrinho() {
-    
-    const container = document.getElementById("carrinho");
-    const totalElemento = document.getElementById("total");
+            produtos.innerHTML = cardapio.map(produto => `
+    <div class="product-card ${produto.available ? "" : "esgotado"}">
 
-    container.innerHTML = "";
+        ${produto.imageUrl ? `<img class="product-image" src="${escapar(produto.imageUrl)}" alt="${escapar(produto.name)}" loading="lazy">` : ""}
 
-    let total = 0;
+        <div class="product-info">
+            <span class="product-category">${escapar(produto.category)}</span>
 
-    carrinho.forEach(produto => {
-        const div = document.createElement("div");
+            <h3>${escapar(produto.name)}</h3>
 
-        div.innerHTML = `
+            <p>${escapar(produto.description || "Uma ótima opção para o seu pedido.")}</p>
+
+            <strong>${preco(produto.price)}</strong>
+        </div>
+
+        ${produto.available
+            ? `<button class="product-add" onclick="adicionarAoCarrinho(${produto.id})">+ Adicionar</button>`
+            : `<button class="product-add" disabled>Esgotado</button>`}
+
+    </div>
+`).join("");
+
+        }
+
+
+        // ---------- Carrinho ----------
+
+        function lerCarrinho() {
+            try {
+                return JSON.parse(localStorage.getItem(CHAVE_CARRINHO)) || [];
+            } catch {
+                return [];
+            }
+        }
+
+        function salvarCarrinho() {
+            if (carrinho.length) {
+                localStorage.setItem(CHAVE_CARRINHO, JSON.stringify(carrinho));
+            } else {
+                localStorage.removeItem(CHAVE_CARRINHO);
+            }
+        }
+
+        // Ao abrir a página, usa os dados atuais do cardápio: tira pratos
+        // excluídos ou esgotados e atualiza nome e preço
+        function sincronizarCarrinho() {
+
+            const removidos = [];
+
+            carrinho = carrinho.filter(item => {
+                const prato = cardapio.find(p => p.id === item.id);
+
+                if (!prato || !prato.available) {
+                    removidos.push(item.nome);
+                    return false;
+                }
+
+                item.nome = prato.name;
+                item.preco = prato.price;
+                return true;
+            });
+
+            salvarCarrinho();
+
+            if (removidos.length) {
+                UI.info(`Saíram do seu carrinho por estarem indisponíveis: ${removidos.join(", ")}.`);
+            }
+
+        }
+
+        function adicionarAoCarrinho(id) {
+
+            const prato = cardapio.find(p => p.id === id);
+
+            if (!prato || !prato.available) {
+                return;
+            }
+
+            const item = carrinho.find(i => i.id === id);
+
+            if (item) {
+                item.quantidade = Math.min(item.quantidade + 1, 50);
+            } else {
+                carrinho.push({ id, nome: prato.name, preco: prato.price, quantidade: 1 });
+            }
+
+            atualizarCarrinho();
+
+        }
+
+        function alterarQuantidade(id, valor) {
+
+            const item = carrinho.find(i => i.id === id);
+
+            if (!item) {
+                return;
+            }
+
+            item.quantidade = Math.min(item.quantidade + valor, 50);
+
+            if (item.quantidade <= 0) {
+                carrinho = carrinho.filter(i => i.id !== id);
+            }
+
+            atualizarCarrinho();
+
+        }
+
+        function removerDoCarrinho(id) {
+            carrinho = carrinho.filter(i => i.id !== id);
+            atualizarCarrinho();
+        }
+
+        function totalCarrinho() {
+            return carrinho.reduce((soma, item) => soma + item.preco * item.quantidade, 0);
+        }
+
+        function atualizarCarrinho() {
+
+            salvarCarrinho();
+
+            const container = document.getElementById("carrinho");
+
+            container.innerHTML = carrinho.length === 0
+                ? "Nenhum produto adicionado."
+                : carrinho.map(item => `
     <div class="cart-item">
 
         <div class="cart-item-info">
             <span>ITEM</span>
-            <h3>${produto.nome}</h3>
-            <strong>R$ ${produto.preco.toFixed(2)}</strong>
+            <h3>${escapar(item.nome)}</h3>
+            <strong>${preco(item.preco)} × ${item.quantidade} = ${preco(item.preco * item.quantidade)}</strong>
         </div>
 
         <div class="cart-item-actions">
 
             <div class="quantity-control">
-                <button onclick="alterarQuantidade(${produto.id}, -1)">−</button>
-
-                <span>${produto.quantidade}</span>
-
-                <button onclick="alterarQuantidade(${produto.id}, 1)">+</button>
+                <button onclick="alterarQuantidade(${item.id}, -1)" aria-label="Diminuir">−</button>
+                <span>${item.quantidade}</span>
+                <button onclick="alterarQuantidade(${item.id}, 1)" aria-label="Aumentar">+</button>
             </div>
 
-            <button
-                class="cart-remove"
-                onclick="removerDoCarrinho(${produto.id})"
-            >
+            <button class="cart-remove" onclick="removerDoCarrinho(${item.id})">
                 Remover
             </button>
 
         </div>
 
     </div>
-`;
+`).join("");
 
-        container.appendChild(div);
+            const subtotal = totalCarrinho();
+            const taxa = restaurante && carrinho.length ? restaurante.deliveryFee : 0;
+            const minimo = restaurante ? restaurante.minOrder : 0;
+            const faltaMinimo = carrinho.length > 0 && subtotal < minimo;
 
-        total += produto.preco * produto.quantidade;
-    });
+            document.getElementById("subtotal").textContent = preco(subtotal);
+            document.getElementById("taxa").textContent = taxa > 0 ? preco(taxa) : "Grátis";
+            document.getElementById("total").textContent = preco(subtotal + taxa);
 
-    if (carrinho.length === 0) {
-        container.innerHTML = "Nenhum produto adicionado.";
-    }
+            const avisoMinimo = document.getElementById("avisoMinimo");
+            avisoMinimo.hidden = !faltaMinimo;
+            avisoMinimo.textContent = `Faltam ${preco(minimo - subtotal)} para o pedido mínimo de ${preco(minimo)}.`;
 
-    totalElemento.textContent =
-        `Total: R$ ${total.toFixed(2)}`;
-}
+            document.getElementById("btnFinalizar").disabled =
+                carrinho.length === 0 || faltaMinimo || (restaurante && !restaurante.isOpen);
 
-async function finalizarPedido() {
-    if (carrinho.length === 0) {
-        alert("Adicione pelo menos um produto ao pedido.");
-        return;
-    }
+        }
 
-    const total = carrinho.reduce((soma, produto) => {
-        return soma + produto.preco * produto.quantidade;
-    }, 0);
 
-    const pedido = {
-        total: total,
-        items: carrinho.map(produto => ({
-            productId: produto.id,
-            quantity: produto.quantidade,
-            price: produto.preco
-        }))
-    };
+        // ---------- Finalizar ----------
 
-    const resposta = await fetch("/orders", {
-        method: "POST",
-        headers: {
-    "Content-Type": "application/json",
-    "Authorization": `Bearer ${localStorage.getItem("token")}`
-    },
-        body: JSON.stringify(pedido)
-    });
+        const campoEndereco = document.getElementById("endereco");
+        const campoObservacao = document.getElementById("observacao");
 
-    const resultado = await resposta.json();
+        campoEndereco.value = localStorage.getItem(CHAVE_ENDERECO) || "";
 
-    if (resposta.ok) {
-        alert(`Pedido #${resultado.id} criado com sucesso!`);
-        carrinho = [];
-        atualizarCarrinho();
-    } else {
-        alert("Erro ao criar pedido.");
-    }
-}
+        // Guarda o que foi digitado (não se perde se precisar fazer login antes)
+        const CHAVE_OBSERVACAO = `easyfood:observacao:${restauranteId}`;
+        campoObservacao.value = sessionStorage.getItem(CHAVE_OBSERVACAO) || "";
+
+        campoEndereco.addEventListener("input", () => {
+            localStorage.setItem(CHAVE_ENDERECO, campoEndereco.value);
+        });
+
+        campoObservacao.addEventListener("input", () => {
+            sessionStorage.setItem(CHAVE_OBSERVACAO, campoObservacao.value);
+        });
+
+        async function finalizarPedido() {
+
+            if (carrinho.length === 0) {
+                UI.erro("Adicione pelo menos um produto ao pedido.");
+                return;
+            }
+
+            const endereco = campoEndereco.value.trim();
+
+            if (endereco.length < 5) {
+                UI.erro("Informe o endereço de entrega.");
+                campoEndereco.focus();
+                return;
+            }
+
+            // Sem login: o carrinho já está salvo, então só manda entrar e volta para cá
+            if (!App.exigirLogin()) {
+                return;
+            }
+
+            const botao = document.getElementById("btnFinalizar");
+            botao.disabled = true;
+
+            try {
+
+                const pedido = await App.api("/orders", {
+                    method: "POST",
+                    autenticado: true,
+                    body: {
+                        address: endereco,
+                        note: campoObservacao.value.trim(),
+                        paymentMethod: formaPagamento(),
+                        changeFor: formaPagamento() === "DINHEIRO" ? document.getElementById("troco").value : undefined,
+                        items: carrinho.map(item => ({
+                            dishId: item.id,
+                            quantity: item.quantidade
+                        }))
+                    }
+                });
+
+                localStorage.setItem(CHAVE_ENDERECO, endereco);
+
+                if (document.getElementById("salvarEndereco").checked) {
+                    await salvarEnderecoNaConta(endereco);
+                }
+
+                UI.avisoNaProximaPagina(`Pedido #${pedido.id} enviado!`);
+
+                carrinho = [];
+                salvarCarrinho();
+                sessionStorage.removeItem(CHAVE_OBSERVACAO);
+
+                window.location.href = `/pedidos.html?novo=${pedido.id}`;
+
+            } catch (erro) {
+
+                UI.erro(erro);
+
+                // Algum prato esgotou enquanto a pessoa montava o pedido
+                if (erro.status === 409) {
+                    await carregarRestaurante();
+                }
+
+                botao.disabled = carrinho.length === 0;
+
+            }
+
+        }
+
+
+        // ---------- Pagamento ----------
+
+        function formaPagamento() {
+            return document.querySelector("input[name=pagamento]:checked").value;
+        }
+
+        document.querySelectorAll("input[name=pagamento]").forEach(opcao => {
+            opcao.addEventListener("change", () => {
+                document.getElementById("campoTroco").hidden = formaPagamento() !== "DINHEIRO";
+            });
+        });
+
+
+        // ---------- Endereços salvos ----------
+
+        let enderecosSalvos = [];
+
+        async function carregarEnderecosSalvos() {
+
+            if (!App.logado()) return;
+
+            try {
+                enderecosSalvos = await App.api("/auth/me/addresses", { autenticado: true, seExpirar: "limpar" });
+            } catch {
+                return;
+            }
+
+            document.getElementById("linhaSalvarEndereco").hidden = false;
+
+            if (enderecosSalvos.length === 0) return;
+
+            const select = document.getElementById("enderecosSalvos");
+
+            select.innerHTML = `<option value="">Escolher um endereço salvo...</option>` +
+                enderecosSalvos.map(e => `<option value="${e.id}">${escapar(e.label)}: ${escapar(e.street)}</option>`).join("");
+
+            select.hidden = false;
+            document.getElementById("rotuloSalvos").hidden = false;
+
+            select.addEventListener("change", () => {
+                const escolhido = enderecosSalvos.find(e => String(e.id) === select.value);
+
+                if (escolhido) {
+                    campoEndereco.value = escolhido.street;
+                    localStorage.setItem(CHAVE_ENDERECO, escolhido.street);
+                }
+            });
+
+        }
+
+        async function salvarEnderecoNaConta(endereco) {
+
+            if (enderecosSalvos.some(e => e.street === endereco)) return;
+
+            try {
+                await App.api("/auth/me/addresses", {
+                    method: "POST",
+                    autenticado: true,
+                    body: { label: `Endereço ${enderecosSalvos.length + 1}`, street: endereco }
+                });
+            } catch {
+                // o pedido já foi feito; salvar o endereço é só um extra
+            }
+
+        }
+
+
+        // ---------- Avaliações ----------
+
+        async function carregarAvaliacoes() {
+
+            const container = document.getElementById("avaliacoes");
+
+            try {
+
+                const avaliacoes = await App.api(`/restaurants/${restauranteId}/reviews`);
+
+                if (avaliacoes.length === 0) {
+                    container.innerHTML = `<p class="empty-state">Ainda sem avaliações. Peça e seja o primeiro a avaliar!</p>`;
+                    return;
+                }
+
+                container.innerHTML = avaliacoes.map(a => `
+    <div class="review-card">
+        <div class="review-head">
+            <strong>${escapar(a.user.name)}</strong>
+            <span class="review-stars" aria-label="${a.rating} de 5 estrelas">${App.estrelas(a.rating)}</span>
+        </div>
+        ${a.comment ? `<p>${escapar(a.comment)}</p>` : ""}
+        <small>${App.data(a.createdAt)}</small>
+    </div>`).join("");
+
+            } catch {
+                container.innerHTML = "";
+            }
+
+        }
 
 
         carregarRestaurante();
+
+        carregarEnderecosSalvos();
+
+        carregarAvaliacoes();
+
     </script>
 
 </body>
+
 </html>
