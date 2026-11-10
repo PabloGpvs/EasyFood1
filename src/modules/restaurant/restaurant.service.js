@@ -36,16 +36,27 @@ async function decorate(restaurants) {
 }
 
 /**
- * Lista restaurantes, com busca opcional por nome/categoria.
+ * Lista restaurantes, com busca opcional por nome, categoria ou prato do cardápio.
+ * Quando há busca, cada restaurante traz `matchedDishes`: os pratos que bateram com o termo.
  * @param {{ search?: string, category?: string }} filters
  */
 async function getRestaurants({ search, category } = {}) {
     const where = {};
+    const dishMatch = search
+        ? {
+            OR: [
+                { name: { contains: search, mode: "insensitive" } },
+                { description: { contains: search, mode: "insensitive" } },
+                { category: { contains: search, mode: "insensitive" } }
+            ]
+        }
+        : null;
 
     if (search) {
         where.OR = [
             { name: { contains: search, mode: "insensitive" } },
-            { category: { contains: search, mode: "insensitive" } }
+            { category: { contains: search, mode: "insensitive" } },
+            { dishes: { some: dishMatch } }
         ];
     }
 
@@ -55,10 +66,24 @@ async function getRestaurants({ search, category } = {}) {
 
     const restaurants = await prisma.restaurant.findMany({
         where,
-        orderBy: { name: "asc" }
+        orderBy: { name: "asc" },
+        include: dishMatch
+            ? {
+                dishes: {
+                    where: dishMatch,
+                    select: { id: true, name: true, price: true, imageUrl: true, available: true },
+                    orderBy: { name: "asc" },
+                    take: 4
+                }
+            }
+            : undefined
     });
 
-    return decorate(restaurants);
+    const list = restaurants.map(({ dishes, ...restaurant }) =>
+        dishMatch ? { ...restaurant, matchedDishes: dishes } : restaurant
+    );
+
+    return decorate(list);
 }
 
 // Categorias existentes, para os filtros da página inicial
